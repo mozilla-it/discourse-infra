@@ -11,19 +11,19 @@ resource "aws_db_instance" "discourse" {
   username                    = "discourse"
   password                    = "oneTimePassword"
   backup_retention_period     = 15
-  db_subnet_group_name        = "${aws_db_subnet_group.discourse-redis.id}"
-  vpc_security_group_ids      = ["${aws_security_group.discourse-redis.id}"]
+  db_subnet_group_name        = "${aws_db_subnet_group.discourse-db.id}"
+  vpc_security_group_ids      = ["${aws_security_group.discourse-db.id}"]
   tags                        = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
-resource "aws_db_subnet_group" "discourse-redis" {
+resource "aws_db_subnet_group" "discourse-db" {
   name        = "discourse-${terraform.workspace}-db"
-  description = "Subnet for discourse  ${terraform.workspace} DB"
+  description = "Subnet for discourse ${terraform.workspace} DB"
   subnet_ids  = ["${data.terraform_remote_state.deploy.private_subnets}"]
   tags        = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
-resource "aws_security_group" "discourse-redis" {
+resource "aws_security_group" "discourse-db" {
   name   = "discourse-${terraform.workspace}-db"
   vpc_id = "${data.terraform_remote_state.deploy.vpc_id}"
 
