@@ -1,13 +1,14 @@
 resource "aws_db_instance" "discourse" {
-  name                        = "discourse-${terraform.workspace}"
+  identifier                  = "discourse-${terraform.workspace}"
   storage_type                = "gp2"
-  engine                      = "psql"
+  engine                      = "postgres"
   engine_version              = "${var.psql-version}"
   instance_class              = "${var.psql-instance}"
   allocated_storage           = "${var.psql-storage-allocated}"
   max_allocated_storage       = "${var.psql-storage-max}"
   multi_az                    = "${terraform.workspace == "prod" ? true : false}"
   allow_major_version_upgrade = true
+  name                        = "discourse"
   username                    = "discourse"
   password                    = "oneTimePassword"
   backup_retention_period     = 15
@@ -20,7 +21,7 @@ resource "aws_db_subnet_group" "discourse-db" {
   name        = "discourse-${terraform.workspace}-db"
   description = "Subnet for discourse ${terraform.workspace} DB"
   subnet_ids  = ["${data.terraform_remote_state.deploy.private_subnets}"]
-  tags        = "${merge(var.common-tags, var.workspace-tags)}"
+  tags        = "${merge(var.common-tags, local.subnet_db_workspace_tags)}"
 }
 
 resource "aws_security_group" "discourse-db" {
@@ -41,7 +42,15 @@ resource "aws_security_group" "discourse-db" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = "${merge(var.common-tags, local.subnet_db_workspace_tags)}"
+}
+
+locals {
+  subnet_db_name_tags = {
+    Name = "discourse-${terraform.workspace}-redis"
+  }
+
+  subnet_db_workspace_tags = "${merge(local.subnet_redis_name_tags, var.workspace-tags)}"
 }
 
 output "rds_endpoint" {
