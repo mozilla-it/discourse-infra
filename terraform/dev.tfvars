@@ -3,7 +3,7 @@
 #########
 "redis-instance" = "cache.t2.small"
 "redis-num-nodes" = 1
-"redis-version" = "3.2.10"
+"redis-version" = "5.0.4"
 
 
 ##########

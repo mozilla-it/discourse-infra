@@ -1,6 +1,6 @@
 resource "aws_iam_role" "discourse_role" {
   name               = "discourse-${terraform.workspace}"
-  path               = "/discourse"
+  path               = "/discourse/"
   assume_role_policy = "${data.aws_iam_policy_document.allow_assume_role.json}"
 }
 

@@ -18,6 +18,10 @@ variable "redis-version" {
   default = "5.0.4"
 }
 
+variable "redis-parameter-group" {
+  default = "default.redis5.0"
+}
+
 ##########
 #  PSQL  #
 ##########

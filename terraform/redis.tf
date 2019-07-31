@@ -4,17 +4,16 @@ resource "aws_elasticache_cluster" "discourse" {
   node_type            = "${var.redis-instance}"
   num_cache_nodes      = "${var.redis-num-nodes}"
   engine_version       = "${var.redis-version}"
-  parameter_group_name = "default.redis${var.redis-version}"
-  subnet_group_name    = "${aws_db_subnet_group.discourse-redis.id}"
+  parameter_group_name = "default.redis5.0"
+  subnet_group_name    = "${aws_elasticache_subnet_group.discourse-redis.id}"
   security_group_ids   = ["${aws_security_group.discourse-redis.id}"]
   tags                 = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
-resource "aws_db_subnet_group" "discourse-redis" {
+resource "aws_elasticache_subnet_group" "discourse-redis" {
   name        = "discourse-${terraform.workspace}-redis"
   description = "Subnet for discourse ${terraform.workspace} Redis cluster"
   subnet_ids  = ["${data.terraform_remote_state.deploy.private_subnets}"]
-  tags        = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
 resource "aws_security_group" "discourse-redis" {
@@ -35,5 +34,13 @@ resource "aws_security_group" "discourse-redis" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = "${merge(var.common-tags, local.subnet_redis_workspace_tags)}"
+}
+
+locals {
+  subnet_redis_name_tags = {
+    Name = "discourse-${terraform.workspace}-redis"
+  }
+
+  subnet_redis_workspace_tags = "${merge(local.subnet_redis_name_tags, var.workspace-tags)}"
 }
