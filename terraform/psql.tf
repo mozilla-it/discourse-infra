@@ -47,4 +47,3 @@ resource "aws_security_group" "discourse-db" {
 output "rds_endpoint" {
   value = "${aws_db_instance.discourse.endpoint}"
 }
-

@@ -2,16 +2,12 @@ variable "region" {
   default = "us-west-1"
 }
 
-variable "account" {
-  default = ""
-}
-
 #########
 # Redis #
 #########
 
 variable "redis-instance" {
-  default = ""
+  default = "cache.t2.small"
 }
 
 variable "redis-num-nodes" {
@@ -27,11 +23,11 @@ variable "redis-version" {
 ##########
 
 variable "psql-instance" {
-  default = ""
+  default = "db.t2.micro"
 }
 
 variable "psql-version" {
-  default = ""
+  default = "11"
 }
 
 variable "psql-storage-allocated" {

@@ -5,8 +5,8 @@ resource "aws_elasticache_cluster" "discourse" {
   num_cache_nodes      = "${var.redis-num-nodes}"
   engine_version       = "${var.redis-version}"
   parameter_group_name = "default.redis${var.redis-version}"
-	subnet_group_name    = "${aws_db_subnet_group.discourse-redis.id}"
-	security_group_ids   = ["${aws_security_group.discourse-redis.id}"]
+  subnet_group_name    = "${aws_db_subnet_group.discourse-redis.id}"
+  security_group_ids   = ["${aws_security_group.discourse-redis.id}"]
   tags                 = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
@@ -37,4 +37,3 @@ resource "aws_security_group" "discourse-redis" {
 
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 }
-
