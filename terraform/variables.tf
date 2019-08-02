@@ -1,5 +1,5 @@
 variable "region" {
-  default = "us-west-1"
+  default = "us-west-2"
 }
 
 #########
@@ -40,6 +40,18 @@ variable "psql-storage-allocated" {
 
 variable "psql-storage-max" {
   default = 100
+}
+
+variable "base-build-image" {
+  default = "aws/codebuild/standard:2.0"
+}
+
+variable "git-repo" {
+  default = "https://github.com/The-smooth-operator/discourse.mozilla.org.git"
+}
+
+variable "git-branch" {
+  default = "codebuild-job"
 }
 
 #################
