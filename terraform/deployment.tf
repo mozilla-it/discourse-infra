@@ -20,10 +20,13 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "DB_HOST"
       "value" = "${aws_db_instance.discourse.address}"
     }
-
     environment_variable {
       "name"  = "REDIS_HOST"
       "value" = "${aws_elasticache_cluster.discourse.cache_nodes.0.address}"
+    }
+    environment_variable {
+      "name"  = "ECR"
+      "value" = "${aws_ecr_repository.discourse.repository_url}"
     }
   }
 
