@@ -28,6 +28,10 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "ECR"
       "value" = "${aws_ecr_repository.discourse.repository_url}"
     }
+    environment_variable {
+      "name"  = "CLUSTER"
+      "value" = "k8s-apps-prod-us-west-2"
+    }
   }
 
   source {
