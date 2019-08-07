@@ -53,7 +53,6 @@ resource "aws_codebuild_project" "discourse" {
 
 resource "aws_iam_role" "codebuild" {
   name = "discourse-${terraform.workspace}-codebuild"
-  path = "/discourse/"
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 
   assume_role_policy = <<EOF
@@ -209,6 +208,7 @@ resource "aws_ssm_parameter" "db-secret" {
   name      = "/discourse/dev/db/secret"
   type      = "String"
   value     = "non-real-password"
+  tags = "${merge(var.common-tags, var.workspace-tags)}"
 	
 	lifecycle {
     ignore_changes = ["value",]
