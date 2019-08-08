@@ -8,6 +8,11 @@ resource "aws_codebuild_project" "discourse" {
     type = "NO_ARTIFACTS"
   }
 
+	cache {
+    type  = "LOCAL"
+    modes = ["LOCAL_DOCKER_LAYER_CACHE", "LOCAL_SOURCE_CACHE"]
+  }
+
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
     image        = "${var.base-build-image}"
@@ -31,6 +36,18 @@ resource "aws_codebuild_project" "discourse" {
     environment_variable {
       "name"  = "CLUSTER"
       "value" = "k8s-apps-prod-us-west-2"
+    }
+    environment_variable {
+      "name"  = "D_HOSTNAME"
+      "value" = "${aws_route53_record.discourse.fqdn}"
+    }
+    environment_variable {
+      "name"  = "SMTP_USER"
+      "value" = "${aws_iam_user.smtp.name}"
+    }
+    environment_variable {
+      "name"  = "SMTP_PW"
+      "value" = "${aws_iam_access_key.smtp.ses_smtp_password}"
     }
   }
 
@@ -209,12 +226,12 @@ resource "aws_security_group" "codebuild" {
 
 # TODO create an encrypted secret with a new KMS key
 resource "aws_ssm_parameter" "db-secret" {
-  name      = "/discourse/dev/db/secret"
-  type      = "String"
-  value     = "non-real-password"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
-	
-	lifecycle {
-    ignore_changes = ["value",]
+  name  = "/discourse/dev/db/secret"
+  type  = "String"
+  value = "non-real-password"
+  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle {
+    ignore_changes = ["value"]
   }
 }
