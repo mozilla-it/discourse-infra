@@ -11,17 +11,17 @@ resource "aws_route53_record" "discourse" {
 }
 
 data "aws_route53_zone" "common" {
- name = "itsre-apps.mozit.cloud."
+  name = "itsre-apps.mozit.cloud."
 }
 
 data "aws_elb" "k8s-elb" {
- name = "ab30fe62db90e11e99aba06db27de6a9"
+  name = "ab30fe62db90e11e99aba06db27de6a9"
 }
 
 resource "aws_acm_certificate" "cert" {
   domain_name       = "${aws_route53_record.discourse.name}"
   validation_method = "DNS"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags              = "${merge(var.common-tags, var.workspace-tags)}"
 
   lifecycle {
     create_before_destroy = true
@@ -40,4 +40,3 @@ resource "aws_acm_certificate_validation" "cert" {
   certificate_arn         = "${aws_acm_certificate.cert.arn}"
   validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
 }
-
