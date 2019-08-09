@@ -43,7 +43,7 @@ resource "aws_codebuild_project" "discourse" {
     }
     environment_variable {
       "name"  = "SMTP_USER"
-      "value" = "${aws_iam_user.smtp.name}"
+      "value" = "${aws_iam_access_key.smtp.id}"
     }
     environment_variable {
       "name"  = "SMTP_PW"

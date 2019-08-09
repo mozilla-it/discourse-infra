@@ -111,3 +111,24 @@ resource "aws_iam_user" "smtp" {
   path = "/discourse/${terraform.workspace}/"
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 }
+
+resource "aws_iam_user_policy" "smtp" {
+  name = "discourse-${terraform.workspace}-smtp"
+  user = "${aws_iam_user.smtp.name}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ses:SendRawEmail"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
