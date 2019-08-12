@@ -2,6 +2,12 @@ provider "aws" {
   region = "us-west-2"
 }
 
+provider "aws" {
+  # Needed for Cloudfront SSL cert
+  region = "us-east-1"
+  alias  = "us-east-1"
+}
+
 terraform {
   required_version = "~> 0.11"
 

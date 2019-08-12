@@ -2,6 +2,14 @@ variable "region" {
   default = "us-west-2"
 }
 
+#############
+# Discourse #
+#############
+
+variable "discourse-url" {
+  default = "discourse.mozilla.org"
+}
+
 #########
 # Redis #
 #########
@@ -74,4 +82,19 @@ variable "common-tags" {
 variable "workspace-tags" {
   type    = "map"
   default = {}
+}
+
+#################
+#  Cloudfront   #
+#################
+variable "cf-price-class" {
+  default = "PriceClass_100"
+}
+
+variable "cf-cache-compress" {
+  default = "true"
+}
+
+variable "cf-alias" {
+  default = "cdn-discourse.mozilla.org"
 }
