@@ -8,7 +8,7 @@ resource "aws_codebuild_project" "discourse" {
     type = "NO_ARTIFACTS"
   }
 
-	cache {
+  cache {
     type  = "LOCAL"
     modes = ["LOCAL_DOCKER_LAYER_CACHE"]
   }
@@ -25,26 +25,32 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "DB_HOST"
       "value" = "${aws_db_instance.discourse.address}"
     }
+
     environment_variable {
       "name"  = "REDIS_HOST"
       "value" = "${aws_elasticache_cluster.discourse.cache_nodes.0.address}"
     }
+
     environment_variable {
       "name"  = "ECR"
       "value" = "${aws_ecr_repository.discourse.repository_url}"
     }
+
     environment_variable {
       "name"  = "CLUSTER"
       "value" = "k8s-apps-prod-us-west-2"
     }
+
     environment_variable {
       "name"  = "D_HOSTNAME"
       "value" = "${aws_route53_record.discourse.fqdn}"
     }
+
     environment_variable {
       "name"  = "SMTP_USER"
       "value" = "${aws_iam_access_key.smtp.id}"
     }
+
     environment_variable {
       "name"  = "SMTP_PW"
       "value" = "${aws_iam_access_key.smtp.ses_smtp_password}"

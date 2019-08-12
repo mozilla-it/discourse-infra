@@ -1,6 +1,6 @@
 resource "aws_route53_record" "discourse" {
   zone_id = "${data.aws_route53_zone.common.zone_id}"
-  name    = "discourse-dev.itsre-apps.mozit.cloud"
+  name    = "${var.discourse-url}"
   type    = "A"
 
   alias {
