@@ -10,7 +10,7 @@ resource "aws_codebuild_project" "discourse" {
 
 	cache {
     type  = "LOCAL"
-    modes = ["LOCAL_DOCKER_LAYER_CACHE", "LOCAL_SOURCE_CACHE"]
+    modes = ["LOCAL_DOCKER_LAYER_CACHE"]
   }
 
   environment {
