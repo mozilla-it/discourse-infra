@@ -1,3 +1,8 @@
+#############
+# Discourse #
+#############
+"discourse-url" = "discourse-dev.itsre-apps.mozit.cloud"
+
 #########
 # Redis #
 #########
@@ -11,8 +16,8 @@
 ##########
 "psql-instance" = "db.t2.micro"
 "psql-version" = "11"
-"psql-storage-allocated" = 50
-"psql-storage-max"  = 100
+"psql-storage-allocated" = 10
+"psql-storage-max"  = 50
 
 #################
 #  Common Tags  #
@@ -20,3 +25,8 @@
 "workspace-tags" = {
   "deploy-env" = "dev"
 }
+
+#################
+#  Cloudfront   #
+#################
+
