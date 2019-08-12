@@ -5,7 +5,7 @@ resource "aws_cloudfront_distribution" "discourse_distribution" {
   aliases             = ["cdn-${var.discourse-url}"]
   comment             = "Discourse ${terraform.workspace} CDN"
   price_class         = "${var.cf-price-class}"
-	depends_on          = ["aws_acm_certificate.cdn", "aws_acm_certificate_validation.cdn"]
+  depends_on          = ["aws_acm_certificate.cdn", "aws_acm_certificate_validation.cdn"]
 
   origin {
     domain_name = "${aws_route53_record.discourse.fqdn}"
@@ -53,18 +53,18 @@ resource "aws_cloudfront_distribution" "discourse_distribution" {
 
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 
-	viewer_certificate {
-	  acm_certificate_arn      = "${aws_acm_certificate.cdn.arn}"
-	  ssl_support_method       = "sni-only"
-	  minimum_protocol_version = "TLSv1"
-	}
+  viewer_certificate {
+    acm_certificate_arn      = "${aws_acm_certificate.cdn.arn}"
+    ssl_support_method       = "sni-only"
+    minimum_protocol_version = "TLSv1"
+  }
 }
 
 resource "aws_acm_certificate" "cdn" {
   domain_name       = "cdn-${var.discourse-url}"
   validation_method = "DNS"
   tags              = "${merge(var.common-tags, var.workspace-tags)}"
-	provider          = "aws.us-east-1"
+  provider          = "aws.us-east-1"
 
   lifecycle {
     create_before_destroy = true
@@ -82,7 +82,7 @@ resource "aws_route53_record" "cdn_cert_validation" {
 resource "aws_acm_certificate_validation" "cdn" {
   certificate_arn         = "${aws_acm_certificate.cdn.arn}"
   validation_record_fqdns = ["${aws_route53_record.cdn_cert_validation.fqdn}"]
-	provider                = "aws.us-east-1"
+  provider                = "aws.us-east-1"
 }
 
 resource "random_id" "cdn_logs" {
