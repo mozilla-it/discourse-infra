@@ -55,6 +55,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "SMTP_PW"
       "value" = "${aws_iam_access_key.smtp.ses_smtp_password}"
     }
+
+    environment_variable {
+      "name"  = "CDN_URL"
+      "value" = "cdn-${var.discourse-url}"
+    }
   }
 
   source {
