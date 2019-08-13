@@ -15,7 +15,7 @@
 #  PSQL  #
 ##########
 "psql-instance" = "db.t2.micro"
-"psql-version" = "11"
+"psql-version" = "10"
 "psql-storage-allocated" = 10
 "psql-storage-max"  = 50
 

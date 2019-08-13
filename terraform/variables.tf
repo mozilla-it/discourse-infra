@@ -39,7 +39,7 @@ variable "psql-instance" {
 }
 
 variable "psql-version" {
-  default = "11"
+  default = "10"
 }
 
 variable "psql-storage-allocated" {
