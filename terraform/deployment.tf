@@ -60,6 +60,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "CDN_URL"
       "value" = "cdn-${var.discourse-url}"
     }
+
+    environment_variable {
+      "name"  = "CDN_URL"
+      "value" = "https://cdn-${var.discourse-url}"
+    }
   }
 
   source {

@@ -1,4 +1,4 @@
-resource "aws_cloudfront_distribution" "discourse_distribution" {
+resource "aws_cloudfront_distribution" "discourse" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
@@ -94,3 +94,11 @@ resource "aws_s3_bucket" "cdn_logs" {
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 }
+resource "aws_route53_record" "cdn_alias" {
+  name    = "cdn-${var.discourse-url}"
+  type    = "CNAME"
+  zone_id = "${data.aws_route53_zone.common.id}"
+  records = ["${aws_cloudfront_distribution.discourse.domain_name}"]
+  ttl     = 60
+}
+
