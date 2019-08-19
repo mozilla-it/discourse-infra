@@ -71,35 +71,59 @@ resource "aws_route53_record" "mx_receive" {
   records = ["10 inbound-smtp.${var.region}.amazonaws.com"]
 }
 
-#
 # DMARC TXT Record
-#
-#resource "aws_route53_record" "txt_dmarc" {
-#  zone_id = "${data.aws_route53_zone.common.id}"
-#  name    = "_dmarc.${var.domain_name}"
-#  type    = "TXT"
-#  ttl     = "600"
-#  records = ["v=DMARC1; p=none; rua=mailto:${var.dmarc_rua};"]
-#}
+resource "aws_route53_record" "txt_dmarc" {
+  zone_id = "${data.aws_route53_zone.common.id}"
+  name    = "_dmarc.${aws_ses_domain_identity.main.domain}"
+  type    = "TXT"
+  ttl     = "600"
+  records = ["v=DMARC1; p=none; rua=mailto:postmaster@${aws_ses_domain_identity.main.domain};"]
+}
 
-#
 # SES Receipt Rule
-#
+resource "aws_ses_receipt_rule" "main" {
+  name          = "discourse-${terraform.workspace}"
+  rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
+  enabled       = true
+  scan_enabled  = true
 
-#resource "aws_ses_receipt_rule" "main" {
-#  name          = "${format("%s-s3-rule", local.dash_domain)}"
-#  rule_set_name = "${var.ses_rule_set}"
-#  recipients    = "${var.from_addresses}"
-#  enabled       = true
-#  scan_enabled  = true
-#
-#  s3_action {
-#    position = 1
-#
-#    bucket_name       = "${var.receive_s3_bucket}"
-#    object_key_prefix = "${var.receive_s3_prefix}"
-#  }
-#}
+  s3_action {
+    position = 1
+
+    bucket_name = "${aws_s3_bucket.incoming_email.id}"
+  }
+}
+
+resource "aws_ses_receipt_rule_set" "discourse" {
+  rule_set_name = "default-rules-discourse-${terraform.workspace}"
+}
+
+resource "aws_s3_bucket" "incoming_email" {
+  bucket = "discourse-${terraform.workspace}-email-${random_id.bucket.dec}"
+  acl    = "private"
+  tags   = "${merge(var.common-tags, var.workspace-tags)}"
+}
+
+resource "aws_s3_bucket_policy" "incoming_email_policy" {
+  bucket = "${aws_s3_bucket.incoming_email.id}"
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowSESPuts",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "ses.amazonaws.com"
+						},
+            "Action": "s3:PutObject",
+            "Resource": "${aws_s3_bucket.incoming_email.arn}/*"
+				}
+    ]
+}
+POLICY
+}
 
 # Create SMTP creds:
 resource "aws_iam_access_key" "smtp" {
