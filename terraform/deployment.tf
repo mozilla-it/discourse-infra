@@ -60,6 +60,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "CDN_URL"
       "value" = "https://cdn-${var.discourse-url}"
     }
+
+    environment_variable {
+      "name"  = "AUTH0_CALLBACK_URL"
+      "value" = "https://${var.discourse-url}/auth/auth0/callback"
+    }
   }
 
   source {
@@ -165,7 +170,7 @@ resource "aws_iam_role_policy" "codebuild" {
       "Action": [
         "ssm:GetParameters"
       ],
-      "Resource": "${aws_ssm_parameter.db-secret.arn}"
+      "Resource": "arn:aws:ssm:us-west-2:783633885093:parameter/discourse/dev/*"
     }
   ]
 }
