@@ -94,6 +94,7 @@ resource "aws_s3_bucket" "cdn_logs" {
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 }
+
 resource "aws_route53_record" "cdn_alias" {
   name    = "cdn-${var.discourse-url}"
   type    = "CNAME"
@@ -101,4 +102,3 @@ resource "aws_route53_record" "cdn_alias" {
   records = ["${aws_cloudfront_distribution.discourse.domain_name}"]
   ttl     = 60
 }
-

@@ -25,6 +25,6 @@ Granting access for a user to the Kubernetes cluster requires having 2 things: a
 Now the AWS user has to be mapped to the Kubernetes role. In order to perform the mapping, edit the 'aws-auth' configmap and reflect the new mapping: `kubectl edit configmap aws-auth -n=kube-system`.
 
 ## Get EKS credentials and test access
-The configuration file which instructs kubectl how to connect to the cluster can be hand crafted, of obtained using the AWS cli. Obtaining it via the AWS cli is the easiest option and can be done running: `aws eks describe-cluster --name k8s-apps-prod-us-west-2`, this will create a file in `~/.kube/config'.
+The configuration file which instructs kubectl how to connect to the cluster can be hand crafted, of obtained using the AWS cli. Obtaining it via the AWS cli is the easiest option and can be done running: `aws eks update-kubeconfig --name k8s-apps-prod-us-west-2`, this will create a file in `~/.kube/config'.
 
-It should be all set. Test the access running `kubectl get pods -n=discourse-dev'. If you see a list of pods, you are ready to go. 
+It should be all set. Test the access running `kubectl get pods -n=discourse-dev`. If you see a list of pods, you are ready to go. 

@@ -1,3 +1,96 @@
+####################
+#      Users       #
+####################
+
+# Alberto
+resource "aws_iam_user" "adelbarrio" {
+  name = "adelbarrio"
+
+  # Not supported by EKS:
+  #path = "/discourse/"
+  tags = "${merge(var.common-tags, var.workspace-tags)}"
+}
+
+resource "aws_iam_user_policy" "adelbarrio_mfa" {
+  name = "allow-${aws_iam_user.adelbarrio.name}-self-manage-mfa"
+  user = "${aws_iam_user.adelbarrio.name}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowIndividualUserToListOnlyTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": "iam:ListMFADevices",
+      "Resource": [
+        "arn:aws:iam::*:mfa/*",
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToManageTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToDeactivateOnlyTheirOwnMFAOnlyWhenUsingMFA",
+      "Effect": "Allow",
+      "Action": "iam:DeactivateMFADevice",
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+      ],
+      "Condition": {
+         "Bool": {
+           "aws:MultiFactorAuthPresent": "true"
+          }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+				"iam:ChangePassword",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:GetAccessKeyLastUsed",
+        "iam:GetUser",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey"
+			],
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.adelbarrio.id}"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_user_login_profile" "adelbarrio" {
+  user                    = "${aws_iam_user.adelbarrio.name}"
+  pgp_key                 = "keybase:adelbarrio"
+  password_reset_required = false
+}
+
+resource "aws_iam_group_membership" "adelbarrio" {
+  name  = "discourse-developer"
+  users = ["${aws_iam_user.adelbarrio.name}"]
+  group = "${aws_iam_group.developers.name}"
+}
+
+output "password_adelbarrio" {
+  value = "${aws_iam_user_login_profile.adelbarrio.encrypted_password}"
+}
+
+# Leo
 resource "aws_iam_user" "lmcardle" {
   name = "lmcardle"
 
@@ -6,24 +99,92 @@ resource "aws_iam_user" "lmcardle" {
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
-resource "aws_iam_user_login_profile" "lmcardle" {
-  user    = "${aws_iam_user.lmcardle.name}"
-  pgp_key = "keybase:leomca"
+resource "aws_iam_user_policy" "lmcardle_mfa" {
+  name = "allow-${aws_iam_user.lmcardle.name}-self-manage-mfa"
+  user = "${aws_iam_user.lmcardle.name}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowIndividualUserToListOnlyTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": "iam:ListMFADevices",
+      "Resource": [
+        "arn:aws:iam::*:mfa/*",
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToManageTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToDeactivateOnlyTheirOwnMFAOnlyWhenUsingMFA",
+      "Effect": "Allow",
+      "Action": "iam:DeactivateMFADevice",
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+      ],
+      "Condition": {
+         "Bool": {
+           "aws:MultiFactorAuthPresent": "true"
+          }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+				"iam:ChangePassword",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:GetAccessKeyLastUsed",
+        "iam:GetUser",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey"
+			],
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.lmcardle.id}"
+    }
+  ]
+}
+EOF
 }
 
-output "password" {
+resource "aws_iam_user_login_profile" "lmcardle" {
+  user                    = "${aws_iam_user.lmcardle.name}"
+  pgp_key                 = "keybase:leomca"
+  password_reset_required = false
+}
+
+resource "aws_iam_group_membership" "lmcardle" {
+  name  = "discourse-developer"
+  users = ["${aws_iam_user.lmcardle.name}"]
+  group = "${aws_iam_group.developers.name}"
+}
+
+output "password_lmcardle" {
   value = "${aws_iam_user_login_profile.lmcardle.encrypted_password}"
 }
+
+#####################
+#   Group policies  #
+#####################
 
 resource "aws_iam_group" "developers" {
   name = "developers"
   path = "/discourse/"
-}
-
-resource "aws_iam_group_membership" "devs" {
-  name  = "discourse-developer"
-  users = ["${aws_iam_user.lmcardle.name}"]
-  group = "${aws_iam_group.developers.name}"
 }
 
 resource "aws_iam_group_policy" "discourse-devs" {
@@ -37,22 +198,43 @@ resource "aws_iam_group_policy" "discourse-devs" {
     {
       "Action": [
         "eks:DescribeCluster",
-        "eks:ListClusters"
+        "eks:ListClusters",
+				"codebuild:ListProjects"
       ],
       "Effect": "Allow",
-      "Resource": "*",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iam:GetAccountPasswordPolicy",
+       "Resource": "*"
     },
     {
       "Action": [
-        "codebuild:*",
+        "codebuild:*"
       ],
       "Effect": "Allow",
-      "Resource": "*",
-			"Condition" : {
-        "StringEquals" : {
-          "aws:ResourceTag/project-name" : "discourse"
-        }
-			}
+      "Resource": "${aws_codebuild_project.discourse.arn}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "events:DescribeRule",
+        "events:ListTargetsByRule",
+        "events:ListRuleNamesByTarget",
+				"cloudwatch:GetMetricStatistics",
+        "s3:GetBucketLocation",
+        "s3:ListAllMyBuckets",
+        "logs:GetLogEvents"
+			],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssm:PutParameter"
+      ],
+      "Resource": "arn:aws:ssm:*:*:parameter/CodeBuild/*"
     }
   ]
 }
@@ -75,47 +257,6 @@ resource "aws_iam_group_policy" "self-managed-mfa" {
                 "iam:ListVirtualMFADevices"
             ],
             "Resource": "*"
-        },
-        {
-            "Sid": "AllowIndividualUserToListOnlyTheirOwnMFA",
-            "Effect": "Allow",
-            "Action": [
-                "iam:ListMFADevices"
-            ],
-            "Resource": [
-                "arn:aws:iam::*:mfa/*",
-                "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
-            ]
-        },
-        {
-            "Sid": "AllowIndividualUserToManageTheirOwnMFA",
-            "Effect": "Allow",
-            "Action": [
-                "iam:CreateVirtualMFADevice",
-                "iam:DeleteVirtualMFADevice",
-                "iam:EnableMFADevice",
-                "iam:ResyncMFADevice"
-            ],
-            "Resource": [
-                "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
-                "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
-            ]
-        },
-        {
-            "Sid": "AllowIndividualUserToDeactivateOnlyTheirOwnMFAOnlyWhenUsingMFA",
-            "Effect": "Allow",
-            "Action": [
-                "iam:DeactivateMFADevice"
-            ],
-            "Resource": [
-                "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
-                "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
-            ],
-            "Condition": {
-                "Bool": {
-                    "aws:MultiFactorAuthPresent": "true"
-                }
-            }
         },
         {
             "Sid": "BlockMostAccessUnlessSignedInWithMFA",
