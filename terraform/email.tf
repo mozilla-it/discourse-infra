@@ -115,8 +115,8 @@ resource "aws_s3_bucket" "incoming_email" {
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 
-	lifecycle_rule{
-		enabled = true
+  lifecycle_rule{
+    enabled = true
     expiration {
       days = 21
     }
