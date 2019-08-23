@@ -8,7 +8,7 @@ resource "aws_ses_domain_identity_verification" "main" {
 }
 
 resource "aws_route53_record" "ses_verification" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "_amazonses.${aws_ses_domain_identity.main.id}"
   type    = "TXT"
   ttl     = "600"
@@ -21,7 +21,7 @@ resource "aws_ses_domain_dkim" "main" {
 
 resource "aws_route53_record" "dkim" {
   count   = 3
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "${format("%s._domainkey.%s", element(aws_ses_domain_dkim.main.dkim_tokens, count.index), aws_ses_domain_identity.main.domain)}"
   type    = "CNAME"
   ttl     = "600"
@@ -39,7 +39,7 @@ resource "aws_ses_domain_mail_from" "main" {
 
 # SPF validaton record
 resource "aws_route53_record" "spf_mail_from" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "${aws_ses_domain_mail_from.main.mail_from_domain}"
   type    = "TXT"
   ttl     = "600"
@@ -47,7 +47,7 @@ resource "aws_route53_record" "spf_mail_from" {
 }
 
 resource "aws_route53_record" "spf_domain" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = "600"
@@ -55,7 +55,7 @@ resource "aws_route53_record" "spf_domain" {
 }
 
 resource "aws_route53_record" "mx_send_mail_from" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "${aws_ses_domain_mail_from.main.mail_from_domain}"
   type    = "MX"
   ttl     = "600"
@@ -64,7 +64,7 @@ resource "aws_route53_record" "mx_send_mail_from" {
 
 # Receiving MX Record
 resource "aws_route53_record" "mx_receive" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "${aws_ses_domain_identity.main.domain}"
   type    = "MX"
   ttl     = "600"
@@ -73,7 +73,7 @@ resource "aws_route53_record" "mx_receive" {
 
 # DMARC TXT Record
 resource "aws_route53_record" "txt_dmarc" {
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   name    = "_dmarc.${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = "600"
@@ -81,21 +81,33 @@ resource "aws_route53_record" "txt_dmarc" {
 }
 
 # SES Receipt Rule
-resource "aws_ses_receipt_rule" "main" {
-  name          = "discourse-${terraform.workspace}"
+resource "aws_ses_receipt_rule" "store_and_forward_email" {
+  name          = "discourse-${terraform.workspace}-store-and-forward-email"
   rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
   enabled       = true
   scan_enabled  = true
+	depends_on    = [ "aws_ses_receipt_rule_set.discourse" ]
+	recipients    = ["${aws_ses_domain_identity.main.domain}"]
 
-  s3_action {
-    position = 1
+	s3_action {
+	  position    = 1
+	  bucket_name = "${aws_s3_bucket.incoming_email.id}"
+	}
 
-    bucket_name = "${aws_s3_bucket.incoming_email.id}"
-  }
+	lambda_action {
+	  position     = 2
+	  function_arn = "${aws_lambda_function.incoming_email.arn}"
+	}
 }
 
 resource "aws_ses_receipt_rule_set" "discourse" {
-  rule_set_name = "default-rules-discourse-${terraform.workspace}"
+	# Only one receipt rule set can be active at a time,
+	# so we don't want to make it workspace dependent
+  rule_set_name = "discourse"
+}
+
+resource "aws_ses_active_receipt_rule_set" "discourse" {
+  rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
 }
 
 resource "aws_s3_bucket" "incoming_email" {
@@ -154,4 +166,89 @@ resource "aws_iam_user_policy" "smtp" {
   ]
 }
 EOF
+}
+
+######################################
+#  Post incoming email to Discourse  #
+######################################
+resource "aws_lambda_function" "incoming_email" {
+  function_name = "discourse-${terraform.workspace}-process-email"
+  handler       = "export.main"
+  s3_bucket     = "${aws_s3_bucket.email_lambda_code.id}"
+  s3_key        = "lambda.zip"
+  role          = "${aws_iam_role.lambda_incoming_email.arn}"
+  description   = "Process incoming email for Discourse ${terraform.workspace}"
+  tags          = "${merge(var.common-tags, var.workspace-tags)}"
+  memory_size   = "128"
+  timeout       = "15"                                                          # value expressed in seconds
+  runtime       = "provided"
+
+  depends_on = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.lambda_incoming_email"]
+}
+
+resource "aws_lambda_permission" "allow_ses" {
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.incoming_email.function_name}"
+  principal     = "ses.amazonaws.com"
+}
+
+resource "aws_iam_role" "lambda_incoming_email" {
+  name = "discourse-${terraform.workspace}-lambda-process-email"
+  tags = "${merge(var.common-tags, var.workspace-tags)}"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_cloudwatch_log_group" "lambda_incoming_email" {
+  name              = "/aws/lambda/discourse-${terraform.workspace}-process-email"
+  retention_in_days = 7
+  tags              = "${merge(var.common-tags, var.workspace-tags)}"
+}
+
+resource "aws_iam_policy" "lambda_incoming_email" {
+  name = "discourse-${terraform.workspace}-lambda-email"
+  path = "/discourse/"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = "${aws_iam_role.lambda_incoming_email.name}"
+  policy_arn = "${aws_iam_policy.lambda_incoming_email.arn}"
+}
+
+# This bucket will store the code of the Lambda function used to process
+# incoming emails.
+resource "aws_s3_bucket" "email_lambda_code" {
+  bucket = "discourse-${terraform.workspace}-incoming-email-processor"
+  acl    = "private"
+  tags   = "${merge(var.common-tags, var.workspace-tags)}"
 }

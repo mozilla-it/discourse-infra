@@ -1,5 +1,5 @@
 resource "aws_route53_record" "discourse" {
-  zone_id = "${data.aws_route53_zone.common.zone_id}"
+  zone_id = "${aws_route53_zone.discourse.zone_id}"
   name    = "${var.discourse-url}"
   type    = "A"
 
@@ -8,6 +8,25 @@ resource "aws_route53_record" "discourse" {
     zone_id                = "${data.aws_elb.k8s-elb.zone_id}"
     evaluate_target_health = false
   }
+}
+
+resource "aws_route53_zone" "discourse" {
+  name = "discourse-${terraform.workspace}.itsre-apps.mozit.cloud."
+  tags = "${merge(var.common-tags, var.workspace-tags)}"
+}
+
+resource "aws_route53_record" "zone_ns" {
+  zone_id = "${data.aws_route53_zone.common.zone_id}"
+  name    = "discourse-${terraform.workspace}.itsre-apps.mozit.cloud"
+  type    = "NS"
+  ttl     = "30"
+
+  records = [
+    "${aws_route53_zone.discourse.name_servers.0}",
+    "${aws_route53_zone.discourse.name_servers.1}",
+    "${aws_route53_zone.discourse.name_servers.2}",
+    "${aws_route53_zone.discourse.name_servers.3}",
+  ]
 }
 
 data "aws_route53_zone" "common" {
@@ -31,7 +50,7 @@ resource "aws_acm_certificate" "cert" {
 resource "aws_route53_record" "cert_validation" {
   name    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_name}"
   type    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
-  zone_id = "${data.aws_route53_zone.common.id}"
+  zone_id = "${aws_route53_zone.discourse.id}"
   records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
   ttl     = 60
 }

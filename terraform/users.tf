@@ -235,6 +235,13 @@ resource "aws_iam_group_policy" "discourse-devs" {
         "ssm:PutParameter"
       ],
       "Resource": "arn:aws:ssm:*:*:parameter/CodeBuild/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "${aws_s3_bucket.email_lambda_code.arn}"
     }
   ]
 }
