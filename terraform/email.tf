@@ -114,6 +114,13 @@ resource "aws_s3_bucket" "incoming_email" {
   bucket = "discourse-${terraform.workspace}-email-${random_id.bucket.dec}"
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle_rule{
+    enabled = true
+    expiration {
+      days = 21
+    }
+	}
 }
 
 resource "aws_s3_bucket_policy" "incoming_email_policy" {
