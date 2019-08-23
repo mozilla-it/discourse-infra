@@ -1,5 +1,5 @@
 resource "aws_elasticache_cluster" "discourse" {
-  cluster_id           = "discourse-${terraform.workspace}-redis"
+  cluster_id           = "discourse-${terraform.workspace}"
   engine               = "redis"
   node_type            = "${var.redis-instance}"
   num_cache_nodes      = "${var.redis-num-nodes}"

@@ -242,7 +242,7 @@ resource "aws_security_group" "codebuild" {
 
 # TODO create an encrypted secret with a new KMS key
 resource "aws_ssm_parameter" "db-secret" {
-  name  = "/discourse/dev/db/secret"
+  name  = "/discourse/${terraform.workspace}/db/secret"
   type  = "String"
   value = "non-real-password"
   tags  = "${merge(var.common-tags, var.workspace-tags)}"
