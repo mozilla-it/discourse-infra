@@ -8,7 +8,7 @@ resource "aws_iam_user" "adelbarrio" {
 
   # Not supported by EKS:
   #path = "/discourse/"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = "${var.common-tags}"
 }
 
 resource "aws_iam_user_policy" "adelbarrio_mfa" {
@@ -78,12 +78,10 @@ resource "aws_iam_user_login_profile" "adelbarrio" {
   user                    = "${aws_iam_user.adelbarrio.name}"
   pgp_key                 = "keybase:adelbarrio"
   password_reset_required = false
-}
 
-resource "aws_iam_group_membership" "adelbarrio" {
-  name  = "discourse-developer"
-  users = ["${aws_iam_user.adelbarrio.name}"]
-  group = "${aws_iam_group.developers.name}"
+  lifecycle {
+    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+  }
 }
 
 output "password_adelbarrio" {
@@ -96,7 +94,7 @@ resource "aws_iam_user" "lmcardle" {
 
   # Not supported by EKS:
   #path = "/discourse/"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = "${var.common-tags}"
 }
 
 resource "aws_iam_user_policy" "lmcardle_mfa" {
@@ -166,12 +164,10 @@ resource "aws_iam_user_login_profile" "lmcardle" {
   user                    = "${aws_iam_user.lmcardle.name}"
   pgp_key                 = "keybase:leomca"
   password_reset_required = false
-}
 
-resource "aws_iam_group_membership" "lmcardle" {
-  name  = "discourse-developer"
-  users = ["${aws_iam_user.lmcardle.name}"]
-  group = "${aws_iam_group.developers.name}"
+  lifecycle {
+    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+  }
 }
 
 output "password_lmcardle" {
@@ -181,6 +177,12 @@ output "password_lmcardle" {
 #####################
 #   Group policies  #
 #####################
+
+resource "aws_iam_group_membership" "discourse" {
+  name  = "discourse-developers"
+  users = ["${aws_iam_user.adelbarrio.name}", "${aws_iam_user.lmcardle.name}"]
+  group = "${aws_iam_group.developers.name}"
+}
 
 resource "aws_iam_group" "developers" {
   name = "developers"
@@ -214,7 +216,10 @@ resource "aws_iam_group_policy" "discourse-devs" {
         "codebuild:*"
       ],
       "Effect": "Allow",
-      "Resource": "${aws_codebuild_project.discourse.arn}"
+      "Resource": [
+				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-staging",
+				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-dev"
+			]
     },
     {
       "Effect": "Allow",
@@ -241,7 +246,10 @@ resource "aws_iam_group_policy" "discourse-devs" {
       "Action": [
         "s3:*"
       ],
-      "Resource": "${aws_s3_bucket.email_lambda_code.arn}"
+      "Resource": [
+				"arn:aws:s3:::discourse-dev-incoming-email-processor",
+				"arn:aws:s3:::discourse-staging-incoming-email-processor"
+			]
     }
   ]
 }
