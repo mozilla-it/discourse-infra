@@ -27,6 +27,11 @@ resource "aws_codebuild_project" "discourse" {
     }
 
     environment_variable {
+      "name"  = "DB_PWD"
+      "value" = "${aws_ssm_parameter.db-secret.value}"
+    }
+
+    environment_variable {
       "name"  = "REDIS_HOST"
       "value" = "${aws_elasticache_cluster.discourse.cache_nodes.0.address}"
     }
@@ -64,6 +69,21 @@ resource "aws_codebuild_project" "discourse" {
     environment_variable {
       "name"  = "AUTH0_CALLBACK_URL"
       "value" = "https://${var.discourse-url}/auth/auth0/callback"
+    }
+
+    environment_variable {
+      "name"  = "AUTH0_CLIENT"
+      "value" = "${aws_ssm_parameter.auth0_client.value}"
+    }
+
+    environment_variable {
+      "name"  = "AUTH0_SECRET"
+      "value" = "${aws_ssm_parameter.auth0_secret.value}"
+    }
+
+    environment_variable {
+      "name"  = "ENV"
+      "value" = "${terraform.workspace}"
     }
   }
 
@@ -170,7 +190,7 @@ resource "aws_iam_role_policy" "codebuild" {
       "Action": [
         "ssm:GetParameters"
       ],
-      "Resource": "arn:aws:ssm:us-west-2:783633885093:parameter/discourse/dev/*"
+      "Resource": "arn:aws:ssm:us-west-2:783633885093:parameter/discourse/${terraform.workspace}/*"
     }
   ]
 }
@@ -245,6 +265,28 @@ resource "aws_ssm_parameter" "db-secret" {
   name  = "/discourse/${terraform.workspace}/db/secret"
   type  = "String"
   value = "non-real-password"
+  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle {
+    ignore_changes = ["value"]
+  }
+}
+
+resource "aws_ssm_parameter" "auth0_client" {
+  name  = "/discourse/${terraform.workspace}/auth0-client-id"
+  type  = "String"
+  value = "non-real-id"
+  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle {
+    ignore_changes = ["value"]
+  }
+}
+
+resource "aws_ssm_parameter" "auth0_secret" {
+  name  = "/discourse/${terraform.workspace}/auth0-client-secret"
+  type  = "String"
+  value = "non-real-secret"
   tags  = "${merge(var.common-tags, var.workspace-tags)}"
 
   lifecycle {
