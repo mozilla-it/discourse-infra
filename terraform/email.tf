@@ -86,23 +86,23 @@ resource "aws_ses_receipt_rule" "store_and_forward_email" {
   rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
   enabled       = true
   scan_enabled  = true
-	depends_on    = [ "aws_ses_receipt_rule_set.discourse" ]
-	recipients    = ["${aws_ses_domain_identity.main.domain}"]
+  depends_on    = ["aws_ses_receipt_rule_set.discourse"]
+  recipients    = ["${aws_ses_domain_identity.main.domain}"]
 
-	s3_action {
-	  position    = 1
-	  bucket_name = "${aws_s3_bucket.incoming_email.id}"
-	}
+  s3_action {
+    position    = 1
+    bucket_name = "${aws_s3_bucket.incoming_email.id}"
+  }
 
-	lambda_action {
-	  position     = 2
-	  function_arn = "${aws_lambda_function.incoming_email.arn}"
-	}
+  lambda_action {
+    position     = 2
+    function_arn = "${aws_lambda_function.incoming_email.arn}"
+  }
 }
 
 resource "aws_ses_receipt_rule_set" "discourse" {
-	# Only one receipt rule set can be active at a time,
-	# so we don't want to make it workspace dependent
+  # Only one receipt rule set can be active at a time,
+  # so we don't want to make it workspace dependent
   rule_set_name = "discourse"
 }
 
@@ -115,12 +115,13 @@ resource "aws_s3_bucket" "incoming_email" {
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 
-  lifecycle_rule{
+  lifecycle_rule {
     enabled = true
+
     expiration {
       days = 21
     }
-	}
+  }
 }
 
 resource "aws_s3_bucket_policy" "incoming_email_policy" {
