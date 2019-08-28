@@ -100,6 +100,25 @@ resource "aws_ses_receipt_rule" "store_and_forward_email" {
   }
 }
 
+resource "aws_ses_receipt_rule" "tldr" {
+  name          = "discourse-${terraform.workspace}-tldr"
+  rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
+  enabled       = true
+  scan_enabled  = true
+  depends_on    = ["aws_ses_receipt_rule_set.discourse"]
+  recipients    = ["tldr@${aws_ses_domain_identity.main.domain}"]
+
+  s3_action {
+    position    = 1
+    bucket_name = "${aws_s3_bucket.tldr_email.id}"
+  }
+
+  lambda_action {
+    position     = 2
+    function_arn = "${aws_lambda_function.tldr.arn}"
+  }
+}
+
 resource "aws_ses_receipt_rule_set" "discourse" {
   # Only one receipt rule set can be active at a time,
   # so we don't want to make it workspace dependent
