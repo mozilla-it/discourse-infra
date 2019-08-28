@@ -78,7 +78,7 @@ resource "aws_iam_user_login_profile" "adelbarrio" {
   user                    = "${aws_iam_user.adelbarrio.name}"
   pgp_key                 = "keybase:adelbarrio"
   password_reset_required = false
-
+  
   lifecycle {
     ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
   }
@@ -243,6 +243,7 @@ resource "aws_iam_group_policy" "discourse-devs" {
 				"arn:aws:s3:::discourse-staging-incoming-email-processor",
 				"arn:aws:s3:::discourse-dev-uploads-157007086891625",
 				"arn:aws:s3:::discourse-staging-uploads-206914184086493"
+
 			]
     }
   ]

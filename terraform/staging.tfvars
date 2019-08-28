@@ -4,6 +4,7 @@
 "discourse-url" = "discourse-staging.itsre-apps.mozit.cloud"
 "discourse-elb" = "ac23bf095c8af11e99ca602ac9836d17"
 
+
 #########
 # Redis #
 #########
