@@ -34,7 +34,7 @@ data "aws_route53_zone" "common" {
 }
 
 data "aws_elb" "k8s-elb" {
-  name = "ab30fe62db90e11e99aba06db27de6a9"
+  name = "${var.discourse-elb}"
 }
 
 resource "aws_acm_certificate" "cert" {

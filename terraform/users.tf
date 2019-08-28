@@ -78,14 +78,10 @@ resource "aws_iam_user_login_profile" "adelbarrio" {
   user                    = "${aws_iam_user.adelbarrio.name}"
   pgp_key                 = "keybase:adelbarrio"
   password_reset_required = false
-
+  
   lifecycle {
     ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
   }
-}
-
-output "password_adelbarrio" {
-  value = "${aws_iam_user_login_profile.adelbarrio.encrypted_password}"
 }
 
 # Leo
@@ -170,10 +166,6 @@ resource "aws_iam_user_login_profile" "lmcardle" {
   }
 }
 
-output "password_lmcardle" {
-  value = "${aws_iam_user_login_profile.lmcardle.encrypted_password}"
-}
-
 #####################
 #   Group policies  #
 #####################
@@ -248,7 +240,10 @@ resource "aws_iam_group_policy" "discourse-devs" {
       ],
       "Resource": [
 				"arn:aws:s3:::discourse-dev-incoming-email-processor",
-				"arn:aws:s3:::discourse-staging-incoming-email-processor"
+				"arn:aws:s3:::discourse-staging-incoming-email-processor",
+				"arn:aws:s3:::discourse-dev-uploads-157007086891625",
+				"arn:aws:s3:::discourse-staging-uploads-206914184086493"
+
 			]
     }
   ]
@@ -290,6 +285,64 @@ resource "aws_iam_group_policy" "self-managed-mfa" {
                     "aws:MultiFactorAuthPresent": "false"
                 }
             }
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_group_policy" "lambda" {
+  name  = "discourse-developers-lambda-access"
+  group = "${aws_iam_group.developers.id}"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+			{
+        "Sid": "LambdaReadOnlyPermissions",
+        "Effect": "Allow",
+        "Action": [
+            "lambda:GetAccountSettings",
+            "lambda:ListFunctions",
+            "lambda:ListTags",
+            "lambda:GetEventSourceMapping",
+            "lambda:ListEventSourceMappings",
+            "iam:ListRoles"
+        ],
+         "Resource": "*"
+        },
+        {
+          "Sid": "LambdaDevelopFunctions",
+          "Effect": "Allow",
+          "NotAction": [
+             "lambda:AddPermission",
+             "lambda:PutFunctionConcurrency"
+          ],
+          "Resource": "arn:aws:lambda:*:*:function:discourse-*"
+        },
+        {
+          "Sid": "DiscourseLambdaDevelopEventSourceMappings",
+           "Effect": "Allow",
+           "Action": [
+              "lambda:DeleteEventSourceMapping",
+              "lambda:UpdateEventSourceMapping",
+              "lambda:CreateEventSourceMapping"
+           ],
+           "Resource": "*",
+           "Condition": {
+              "StringLike": {
+                 "lambda:FunctionArn": "arn:aws:lambda:*:*:function:discourse-*"
+               }
+            }
+        },
+        {
+          "Sid": "DiscoursLambdaeViewLogs",
+          "Effect": "Allow",
+          "Action": [
+              "logs:*"
+          ],
+          "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/discourse-*"
         }
     ]
 }

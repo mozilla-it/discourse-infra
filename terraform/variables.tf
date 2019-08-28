@@ -10,6 +10,10 @@ variable "discourse-url" {
   default = "discourse.mozilla.org"
 }
 
+variable "discourse-elb" {
+  default = "fill-me-after-elb-creation"
+}
+
 #########
 # Redis #
 #########
