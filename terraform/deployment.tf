@@ -85,6 +85,16 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "ENV"
       "value" = "${terraform.workspace}"
     }
+
+    environment_variable {
+      "name"  = "S3_UPLOADS"
+      "value" = "${aws_s3_bucket.uploads.id}"
+    }
+
+    environment_variable {
+      "name"  = "S3_REGION"
+      "value" = "${var.region}"
+    }
   }
 
   source {
