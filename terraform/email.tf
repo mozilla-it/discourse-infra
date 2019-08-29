@@ -211,6 +211,15 @@ resource "aws_lambda_function" "incoming_email" {
   runtime       = "provided"
 
   depends_on = ["aws_iam_role_policy_attachment.lambda_logs", "aws_cloudwatch_log_group.lambda_incoming_email"]
+
+  environment {
+    variables = {
+      DISCOURSE_API_KEY         = "${aws_ssm_parameter.in_email_api_key.value}"
+      DISCOURSE_API_USERNAME    = "system"
+      DISCOURSE_EMAIL_IN_BUCKET = "${aws_s3_bucket.incoming_email.id}"
+      DISCOURSE_URL             = "https://${aws_route53_record.discourse.fqdn}"
+    }
+  }
 }
 
 resource "aws_lambda_permission" "allow_ses" {
@@ -278,4 +287,15 @@ resource "aws_s3_bucket" "email_lambda_code" {
   bucket = "discourse-${terraform.workspace}-incoming-email-processor"
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
+}
+
+resource "aws_ssm_parameter" "in_email_api_key" {
+  name  = "/discourse/${terraform.workspace}/in-email-api-key"
+  type  = "String"
+  value = "non-real-key"
+  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle {
+    ignore_changes = ["value"]
+  }
 }
