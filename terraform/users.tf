@@ -239,10 +239,7 @@ resource "aws_iam_group_policy" "discourse-devs" {
         "s3:*"
       ],
       "Resource": [
-				"arn:aws:s3:::discourse-dev-incoming-email-processor",
-				"arn:aws:s3:::discourse-staging-incoming-email-processor",
-				"arn:aws:s3:::discourse-dev-uploads-157007086891625",
-				"arn:aws:s3:::discourse-staging-uploads-206914184086493"
+				"arn:aws:s3:::discourse-*"
 
 			]
     }
@@ -341,6 +338,15 @@ resource "aws_iam_group_policy" "lambda" {
           "Effect": "Allow",
           "Action": [
               "logs:*"
+          ],
+          "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/discourse-*"
+        },
+        {
+          "Sid": "DiscoursLambdaeViewMetrics",
+          "Effect": "Allow",
+          "Action": [
+              "cloudwatch:GetMetricStatistics",
+							"cloudwatch:GetMetricData"
           ],
           "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/discourse-*"
         }
