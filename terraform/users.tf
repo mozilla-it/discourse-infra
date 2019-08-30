@@ -348,7 +348,7 @@ resource "aws_iam_group_policy" "lambda" {
               "cloudwatch:GetMetricStatistics",
 							"cloudwatch:GetMetricData"
           ],
-          "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/discourse-*"
+          "Resource": "*"
         }
     ]
 }
