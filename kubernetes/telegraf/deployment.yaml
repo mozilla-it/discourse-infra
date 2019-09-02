@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: telegraf
+  name: telegraf
+  namespace: discourse-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegraf
+  template:
+    metadata:
+      annotations:
+        iam.amazonaws.com/role: arn:aws:iam::783633885093:role/discourse/telegraf-staging
+      labels:
+        app: telegraf
+    spec:
+      containers:
+      - image: telegraf:1.11.5-alpine
+        name: telegraf
+        env:
+        - name: INFLUX_USER
+          valueFrom:
+            secretKeyRef:
+              name: telegraf-secrets
+              key: user
+        - name: INFLUX_DB
+          valueFrom:
+            secretKeyRef:
+              name: telegraf-secrets
+              key: db
+        - name: INFLUX_PW
+          valueFrom:
+            secretKeyRef:
+              name: telegraf-secrets
+              key: pw
+        - name: INFLUX_URL
+          valueFrom:
+            secretKeyRef:
+              name: telegraf-secrets
+              key: url
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        volumeMounts:
+          - name: telegraf-config
+            mountPath: /etc/telegraf
+            readOnly: true
+      volumes:
+      - name: telegraf-config
+        configMap:
+          name: telegraf-config
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
