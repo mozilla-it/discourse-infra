@@ -270,6 +270,14 @@ resource "aws_iam_policy" "lambda_incoming_email" {
       ],
       "Resource": "arn:aws:logs:*:*:*",
       "Effect": "Allow"
+    },
+    {
+      "Action": "s3:GetObject",
+      "Resource": [
+				"${aws_s3_bucket.incoming_email.arn}",
+				"${aws_s3_bucket.incoming_email.arn}/*"
+			],
+      "Effect": "Allow"
     }
   ]
 }
