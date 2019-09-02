@@ -53,3 +53,31 @@ output "iam_role_arn" {
   value       = "${aws_iam_role.discourse_role.arn}"
   description = "Discourse role ARN"
 }
+
+resource "aws_iam_role" "telegraf" {
+  name               = "telegraf-${terraform.workspace}"
+  path               = "/discourse/"
+  assume_role_policy = "${data.aws_iam_policy_document.allow_assume_role.json}"
+}
+
+resource "aws_iam_role_policy" "telegraf" {
+  name = "telegraf-discourse-${terraform.workspace}"
+  role = "${aws_iam_role.telegraf.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "cloudwatch:Describe*",
+        "cloudwatch:Get*",
+        "cloudwatch:List*"
+      ],
+      "Effect": "Allow",
+      "Resource": [ "*" ]
+    }
+  ]
+}
+EOF
+}
