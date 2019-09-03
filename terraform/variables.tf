@@ -59,7 +59,7 @@ variable "base-build-image" {
 }
 
 variable "git-repo" {
-  default = "https://github.com/The-smooth-operator/discourse.mozilla.org.git"
+  default = "https://github.com/mozilla/discourse.mozilla.org"
 }
 
 variable "git-branch" {
