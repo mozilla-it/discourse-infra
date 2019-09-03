@@ -5,7 +5,7 @@ resource "random_id" "bucket" {
 
 resource "aws_s3_bucket" "uploads" {
   bucket = "discourse-${terraform.workspace}-uploads-${random_id.bucket.dec}"
-	acl    = "private"
+  acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
@@ -19,7 +19,7 @@ resource "aws_s3_bucket_policy" "uploads_bucket" {
         {
             "Effect": "Allow",
             "Principal": {
-							"AWS": "*"
+              "AWS": "*"
 						},
             "Action": ["s3:GetObject"],
             "Resource": ["${aws_s3_bucket.uploads.arn}/*"]
