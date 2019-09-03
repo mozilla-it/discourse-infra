@@ -8,3 +8,23 @@ resource "aws_s3_bucket" "uploads" {
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
 }
+
+resource "aws_s3_bucket_policy" "uploads_bucket" {
+  bucket = "${aws_s3_bucket.uploads.id}"
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "*"
+						},
+            "Action": ["s3:GetObject"],
+            "Resource": ["${aws_s3_bucket.uploads.arn}/*"]
+				}
+    ]
+}
+POLICY
+}
