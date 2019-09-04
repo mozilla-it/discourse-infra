@@ -133,9 +133,11 @@ data:
     [[inputs.cloudwatch]]
       region = "us-west-2"
       period = "24h"
-      interval = "30m"
-      delay = "5m"
+      delay = "24h"
+      interval = "1h"
       namespace = "AWS/S3"
+      ratelimit = 200
+
 
     # OUTPUTS
     [[outputs.influxdb]]
