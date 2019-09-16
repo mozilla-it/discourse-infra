@@ -97,7 +97,7 @@ resource "aws_codebuild_project" "discourse" {
     }
 
     environment_variable {
-      "name"  = "CODE_VERSION"
+      "name"  = "CODE_REVISION"
       "value" = "tests-passed"
     }
   }
