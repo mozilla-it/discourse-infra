@@ -95,6 +95,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "S3_REGION"
       "value" = "${var.region}"
     }
+
+    environment_variable {
+      "name"  = "CODE_REVISION"
+      "value" = "tests-passed"
+    }
   }
 
   source {
