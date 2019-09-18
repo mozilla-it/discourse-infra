@@ -1,5 +1,7 @@
 resource "aws_ses_domain_identity" "main" {
   domain = "${aws_route53_record.discourse.fqdn}"
+	# Change when doing the prod DNS switch
+  #domain = "${var.ses-domain}"
 }
 
 resource "aws_ses_domain_identity_verification" "main" {
@@ -87,6 +89,7 @@ resource "aws_ses_receipt_rule" "store_and_forward_email" {
   enabled       = true
   scan_enabled  = true
   depends_on    = ["aws_ses_receipt_rule_set.discourse"]
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
   recipients    = ["${aws_ses_domain_identity.main.domain}"]
 
   s3_action {
@@ -106,6 +109,7 @@ resource "aws_ses_receipt_rule" "tldr" {
   enabled       = true
   scan_enabled  = true
   depends_on    = ["aws_ses_receipt_rule_set.discourse"]
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
   recipients    = ["tldr@${aws_ses_domain_identity.main.domain}"]
 
   s3_action {
@@ -122,11 +126,14 @@ resource "aws_ses_receipt_rule" "tldr" {
 resource "aws_ses_receipt_rule_set" "discourse" {
   # Only one receipt rule set can be active at a time,
   # so we don't want to make it workspace dependent
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+
   rule_set_name = "discourse"
 }
 
 resource "aws_ses_active_receipt_rule_set" "discourse" {
   rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 }
 
 resource "aws_s3_bucket" "incoming_email" {

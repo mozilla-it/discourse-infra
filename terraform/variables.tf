@@ -102,3 +102,10 @@ variable "cf-cache-compress" {
 variable "cf-alias" {
   default = "cdn-discourse.mozilla.org"
 }
+
+#################
+#     Email     #
+#################
+variable "ses-domain" {
+  default = "discourse.mozilla.org"
+}
