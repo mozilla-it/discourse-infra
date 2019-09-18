@@ -7,6 +7,12 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - events
+  verbs:
+  - patch
+- apiGroups:
+  - ""
+  resources:
   - namespaces
   verbs:
   - get

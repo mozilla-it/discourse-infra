@@ -1,13 +1,14 @@
 #############
 # Discourse #
 #############
-"discourse-url" = "discourse-dev.itsre-apps.mozit.cloud"
-"discourse-elb" = "ab30fe62db90e11e99aba06db27de6a9"
+"discourse-url" = "discourse-prod.itsre-apps.mozit.cloud"
+"discourse-elb" = "a4973975cda0c11e9807a021c7053ca0"
+
 
 #########
 # Redis #
 #########
-"redis-instance" = "cache.t2.small"
+"redis-instance" = "cache.t2.medium"
 "redis-num-nodes" = 1
 "redis-version" = "5.0.4"
 
@@ -15,20 +16,20 @@
 ##########
 #  PSQL  #
 ##########
-"psql-instance" = "db.t2.micro"
+"psql-instance" = "db.m5.large"
 "psql-version" = "10"
-"psql-storage-allocated" = 10
-"psql-storage-max"  = 50
+"psql-storage-allocated" = 30
+"psql-storage-max"  = 100
 
 #################
 #  Common Tags  #
 #################
 "workspace-tags" = {
-  "deploy-env" = "dev"
+  "deploy-env" = "prod"
 }
 
 #################
 #     Email     #
 #################
-"ses-domain" = "${var.discourse-url}"
+"ses-domain" = "discourse.mozilla.org"
   

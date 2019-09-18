@@ -32,3 +32,7 @@
 #  Cloudfront   #
 #################
 
+#################
+#     Email     #
+#################
+"ses-domain" = "${var.discourse-url}"
