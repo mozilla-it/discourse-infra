@@ -246,6 +246,16 @@ resource "aws_iam_group_policy" "discourse-devs" {
     {
       "Effect": "Allow",
       "Action": [
+				"ses:DescribeActiveReceiptRuleSet",
+        "ses:DescribeReceiptRule",
+        "ses:DescribeReceiptRuleSet",
+				"ses:ListReceiptRuleSets"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
         "s3:*"
       ],
       "Resource": [
