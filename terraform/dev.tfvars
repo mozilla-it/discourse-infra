@@ -30,5 +30,5 @@
 #################
 #     Email     #
 #################
-"ses-domain" = "${var.discourse-url}"
+"ses-domain" = "discourse-dev.itsre-apps.mozit.cloud"
   
