@@ -32,4 +32,5 @@
 #     Email     #
 #################
 "ses-domain" = "discourse.mozilla.org"
+#"ses-domain" = "discourse-prod.itsre-apps.mozit.cloud"
   
