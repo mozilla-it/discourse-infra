@@ -225,6 +225,7 @@ resource "aws_lambda_function" "incoming_email" {
       DISCOURSE_API_USERNAME    = "system"
       DISCOURSE_EMAIL_IN_BUCKET = "${aws_s3_bucket.incoming_email.id}"
       DISCOURSE_URL             = "https://${aws_route53_record.discourse.fqdn}"
+      REJECTED_RECIPIENTS       = "tldr@${var.ses-domain}"
     }
   }
 }
