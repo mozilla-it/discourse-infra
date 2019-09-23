@@ -1,8 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: discourse-staging
-  namespace: discourse-staging
+  name: discourse-prod
+  namespace: discourse-prod
 rules:
 - apiGroups:
   - ""
@@ -49,14 +49,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: discourse-staging-codebuild-role-binding
-  namespace: discourse-staging
+  name: discourse-prod-codebuild-role-binding
+  namespace: discourse-prod
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: discourse-staging
+  name: discourse-prod
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
-  name: discourse-staging-codebuild
-  namespace: discourse-staging
+  name: discourse-prod-codebuild
+  namespace: discourse-prod
