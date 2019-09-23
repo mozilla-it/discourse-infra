@@ -8,7 +8,7 @@
 #########
 # Redis #
 #########
-"redis-instance" = "cache.t2.medium"
+"redis-instance" = "cache.t2.small"
 "redis-num-nodes" = 1
 "redis-version" = "5.0.4"
 
@@ -16,7 +16,7 @@
 ##########
 #  PSQL  #
 ##########
-"psql-instance" = "db.m5.large"
+"psql-instance" = "db.t3.small"
 "psql-version" = "10"
 "psql-storage-allocated" = 30
 "psql-storage-max"  = 100
