@@ -100,6 +100,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "CODE_REVISION"
       "value" = "tests-passed"
     }
+
+    environment_variable {
+      "name"  = "SES_DOMAIN"
+      "value" = "${var.ses-domain}"
+    }
   }
 
   source {
