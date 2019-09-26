@@ -1,7 +1,5 @@
 resource "aws_ses_domain_identity" "main" {
-  domain = "${aws_route53_record.discourse.fqdn}"
-	# Change when doing the prod DNS switch
-  #domain = "${var.ses-domain}"
+  domain = "${var.ses-domain}"
 }
 
 resource "aws_ses_domain_identity_verification" "main" {
@@ -10,11 +8,16 @@ resource "aws_ses_domain_identity_verification" "main" {
 }
 
 resource "aws_route53_record" "ses_verification" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "_amazonses.${aws_ses_domain_identity.main.id}"
   type    = "TXT"
   ttl     = "600"
   records = ["${aws_ses_domain_identity.main.verification_token}"]
+}
+
+resource "aws_route53_zone" "discourse-ses" {
+  name = "${var.ses-domain}."
+  tags = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
 resource "aws_ses_domain_dkim" "main" {
@@ -23,7 +26,7 @@ resource "aws_ses_domain_dkim" "main" {
 
 resource "aws_route53_record" "dkim" {
   count   = 3
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "${format("%s._domainkey.%s", element(aws_ses_domain_dkim.main.dkim_tokens, count.index), aws_ses_domain_identity.main.domain)}"
   type    = "CNAME"
   ttl     = "600"
@@ -36,12 +39,12 @@ resource "aws_route53_record" "dkim" {
 
 resource "aws_ses_domain_mail_from" "main" {
   domain           = "${aws_ses_domain_identity.main.domain}"
-  mail_from_domain = "discourse.${aws_ses_domain_identity.main.domain}"
+  mail_from_domain = "mail.${aws_ses_domain_identity.main.domain}"
 }
 
 # SPF validaton record
 resource "aws_route53_record" "spf_mail_from" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "${aws_ses_domain_mail_from.main.mail_from_domain}"
   type    = "TXT"
   ttl     = "600"
@@ -49,7 +52,7 @@ resource "aws_route53_record" "spf_mail_from" {
 }
 
 resource "aws_route53_record" "spf_domain" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = "600"
@@ -57,7 +60,7 @@ resource "aws_route53_record" "spf_domain" {
 }
 
 resource "aws_route53_record" "mx_send_mail_from" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "${aws_ses_domain_mail_from.main.mail_from_domain}"
   type    = "MX"
   ttl     = "600"
@@ -66,7 +69,7 @@ resource "aws_route53_record" "mx_send_mail_from" {
 
 # Receiving MX Record
 resource "aws_route53_record" "mx_receive" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "${aws_ses_domain_identity.main.domain}"
   type    = "MX"
   ttl     = "600"
@@ -75,7 +78,7 @@ resource "aws_route53_record" "mx_receive" {
 
 # DMARC TXT Record
 resource "aws_route53_record" "txt_dmarc" {
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.discourse-ses.id}"
   name    = "_dmarc.${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = "600"
@@ -89,7 +92,7 @@ resource "aws_ses_receipt_rule" "store_and_forward_email" {
   enabled       = true
   scan_enabled  = true
   depends_on    = ["aws_ses_receipt_rule_set.discourse"]
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count         = "${terraform.workspace == "prod" ? "1" : "0"}"
   recipients    = ["${aws_ses_domain_identity.main.domain}"]
 
   s3_action {
@@ -109,7 +112,7 @@ resource "aws_ses_receipt_rule" "tldr" {
   enabled       = true
   scan_enabled  = true
   depends_on    = ["aws_ses_receipt_rule_set.discourse"]
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count         = "${terraform.workspace == "prod" ? "1" : "0"}"
   recipients    = ["tldr@${aws_ses_domain_identity.main.domain}"]
 
   s3_action {
@@ -133,7 +136,7 @@ resource "aws_ses_receipt_rule_set" "discourse" {
 
 resource "aws_ses_active_receipt_rule_set" "discourse" {
   rule_set_name = "${aws_ses_receipt_rule_set.discourse.id}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count         = "${terraform.workspace == "prod" ? "1" : "0"}"
 }
 
 resource "aws_s3_bucket" "incoming_email" {
