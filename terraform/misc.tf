@@ -7,6 +7,16 @@ resource "aws_s3_bucket" "uploads" {
   bucket = "discourse-${terraform.workspace}-uploads-${random_id.bucket.dec}"
   acl    = "private"
   tags   = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle_rule {
+    id      = "purge_tombstone"
+    enabled = true
+    prefix  = "tombstone/"
+
+    expiration {
+      days = 30
+    }
+  }
 }
 
 resource "aws_s3_bucket_policy" "uploads_bucket" {
