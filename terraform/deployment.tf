@@ -105,6 +105,11 @@ resource "aws_codebuild_project" "discourse" {
       "name"  = "SES_DOMAIN"
       "value" = "${var.ses-domain}"
     }
+
+    environment_variable {
+      "name"  = "AKISMET_API_KEY"
+      "value" = "${aws_ssm_parameter.akismet-key.value}"
+    }
   }
 
   source {
@@ -307,6 +312,17 @@ resource "aws_ssm_parameter" "auth0_secret" {
   name  = "/discourse/${terraform.workspace}/auth0-client-secret"
   type  = "String"
   value = "non-real-secret"
+  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+
+  lifecycle {
+    ignore_changes = ["value"]
+  }
+}
+
+resource "aws_ssm_parameter" "akismet-key" {
+  name  = "/discourse/${terraform.workspace}/akismet-api-key"
+  type  = "String"
+  value = "non-real-key"
   tags  = "${merge(var.common-tags, var.workspace-tags)}"
 
   lifecycle {
