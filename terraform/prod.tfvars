@@ -16,7 +16,7 @@
 ##########
 #  PSQL  #
 ##########
-"psql-instance" = "db.m5.medium"
+"psql-instance" = "db.m5.large"
 "psql-version" = "10"
 "psql-storage-allocated" = 30
 "psql-storage-max"  = 100
