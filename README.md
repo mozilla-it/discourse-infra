@@ -3,15 +3,43 @@ This repository contains the infrastructure code for running discourse.mozilla.o
 
 # Table of content
 
+ - 0 [FAQ](#fac)
  - 1 [User Management](#user-management)
- - 2 [Terraform](#terraform)
+ - 2 [Infrastructure: Terraform](#terraform)
  - 3 [Dependencies](#dependencies)
  - 4 [Secrets](#secrets)
  - 5 [CI/CD](#ci-cd)
+ - 6 [Metrics, Logs and Alerts](#metrics-logs-alerts)
 
+
+# FAQ
+This section contains frequently asked questions with a short answer, read the complete README for longer explanation about these topics.
+
+### What is the AWS account where Discourse lives?
+Discourse lives in IT-SRE common applications account, and it is deployed into the common application cluster.
+
+### How can I see when the application was deployed for last time?
+Login into the AWS it-sre-apps account. Go to Codebuild, choose "discourse-prod". There you can see when the last "Suceeded" deployment occurs.
+
+You can also use the cli if you want but it's tedious and returns UNIX timestamps: `JOBID=$(aws codebuild list-builds-for-project --project-name discourse-prod --output text --max-items 1 | awk '/IDS/  {print $2}') && aws codebuild batch-get-builds --ids $JOBID --query 'builds[0].[buildStatus, endTime]'`
+
+### How can I trigger a deployment of the application?
+Run `aws codebuild start-build --project-name discourse-prod` and folow the progress in the AWS Codebuild UI. Other option is to go to the AWS Codebuild, choose the "discourse-prod" project, and click "Start Build".
+
+### How can I get into the Kubernetes cluster?
+`aws eks update-kubeconfig --name k8s-apps-prod-us-west-2`. That will get a kubeconfig for you, now you can run kubectl commands.
+
+### Where can I see how the (healthy) status of Discourse?
+1. Check if there are alerts in the Slack channel #discourse-alerts
+2. Look at the graphs showing traffic, resources usage and saturation [here](https://biff-5adb6e55.influxcloud.net/d/-wHLuuFZz/discourse?orgId=1&var-env=prod).
+
+### How can I restart the application?
+Run 'PODS=$(kubectl get po -n=discourse-prod -l=app=discourse | awk '/discourse/ {print $1}') && for p in $PODS; do kubectl delete po -n=discourse-prod $p ; done`. This will delete the current running pods one by one. This means it will be slow but it won't cause any downtime.
+
+If you want a faster approach you can run `kubectl delete po -n=discourse-prod -l=app=discourse`. This will delete all the running pods and spawn new ones, because you are deleting all the pods at once, the application will experience a small downtime.
 
 # User management
-This section describes how to create new users in AWS and how can they connect to the Kubernetes cluster.
+This section describes how to create new users (intented for developers) in AWS and how can they connect to the Kubernetes cluster.
 In order connect to the cluster, a user must have installed the next dependencies:
  - awscli >= 1.16.154
  - kubectl >= 1.13 
@@ -39,7 +67,7 @@ The configuration file which instructs kubectl how to connect to the cluster can
 It should be all set. Test the access running `kubectl get pods -n=discourse-dev`. If you see a list of pods, you are ready to go. 
 
 
-# Terraform
+# Infrastructure: Terraform
 All the AWS resources needed to build, deploy and run Discourse are entirely managed with Terraform. In order to make changes to the infrastructure you must be logged into AWS.
 
 ### Using terrafom workspaces
@@ -58,14 +86,14 @@ This section aims to list the different resources needed to build, deploy and ru
  - Postgres 
  - Redis
  - Email: SES for sending and receiving email
- - AWS Lamdba for posting the weekly TL;DR and for email processing.
+ - AWS Lamdba for posting the weekly TL;DR and for email processing
  - S3 for storing user uploads, incoming email...
 
 ### Other AWS resources needed
  - CDN
  - Route53 domains
- - Codebuild jobs.
- - ECR.
+ - Codebuild jobs
+ - ECR
  - S3 buckets containing Lmbda function code, CDN logs...
  - Users
  - IAM roles to make all components work together.
@@ -73,20 +101,20 @@ This section aims to list the different resources needed to build, deploy and ru
 ### Code and configuration repositories:
  - [Discourse](https://github.com/discourse/discourse) Upstream Discourse repository containing application code.
  - [Discourse docker](https://github.com/discourse/discourse_docker) Contains the official scripts to build Discourse into a Docker container.
- - [Discourse Mozilla](https://github.com/mozilla/discourse.mozilla.org) Buildspecs, environments definition and other configs for Mozilla's custom build of Discourse.
- - [Discourse Infra](https://github.com/mozilla-it/discourse-infra) This repo. Terraform code, Kubernetes manifests and docs used for sysadmins/operators to create and manage Discourse installations.
+ - [Discourse Mozilla](https://github.com/mozilla/discourse.mozilla.org) Buildspecs, Kubernetes manifests, environments definition and other configs for Mozilla's custom build of Discourse.
+ - [Discourse Infra](https://github.com/mozilla-it/discourse-infra) This repo. Terraform code, Kubernetes manifests for infrastructure components and docs used for sysadmins/operators to create and manage Discourse installations.
 
 # Secrets
 All the secrets used by Discourse are set as environment variables, and they are backed into the container at build time. This is bad, but until we can't deconstruct the official building process, is the only option. The container is pushed to a private ECR registry.
 
-The process for adding the secrets into the container uses Codebuild, Terraform and the official Discourse build scripts to get them backed in. When Terraform creates a Codebuild job for deploying in a specific environment, it passes all the secrets as environment variables to the job (you can see them in the Codebuild job definition), during the building process those variables are written in the file `include/env.yaml`, the Discourse builder uses that file to source the variables.
+The process for adding the secrets into the container uses Codebuild, AWS SSM, Terraform and the official Discourse build scripts to get them backed in. When Terraform creates a Codebuild job for deploying in a specific environment, it fetches secrets from SSM and sets them all the as environment variables to the job (you can see them in the Codebuild job definition), during the building process those variables are written in the file `include/env.yaml`, the Discourse builder uses that file to source the variables.
 
 ### Secrets generation and location
-Most of the secrets are created and known by Terraform: for example the endpoint of the RDS database or the name of an S3 bucket. However there are other few which can't be created by Terraform and remain secure, for example the password to access the database or the OIDC token used for Auth0. In order to **be consistent** these secrets are also managed by Terraform but need manual interaction in the moment of creation or rotation.
+Most of the secrets are created and known by Terraform: for example the endpoint of the RDS database or the name of an S3 bucket. However there are other few which can't be created by Terraform and remain secure, for example the password to access the database or the OIDC token used for Auth0. In order to **be consistent** these secrets are also managed by Terraform and stored in AWS SSM but need manual interaction during the bootstrap or rotation time.
 
-The strategy used is to create an SSM parameter with a dummy value using Terraform and add it to the Codebuild enviroment as the other secrets/variables. After the first Terraform run, you can go and overwrite the value of an SSM secret with `aws ssm put-value`. The next Terraform run will add the correct value to the Codebuild job.
+The strategy used is to create an SSM parameter with a dummy value using Terraform and add it to the Codebuild enviroment as the other secrets/variables. After the first Terraform run, you can go and overwrite the value of an SSM secret with `aws ssm put-value`. The next Terraform run will add the correct value to the Codebuild job. Terraform has an special annotation for these secret instructing it to not override again the value with the default one.
 
-Using this approach we can be sure that looking at the Terraform code, we are able to see **all the secrets** used by the application.
+Using this approach we can be sure that looking at the Terraform code, we are able to figure out **all the secrets** used by the application. You can see the value either as a Terraform output in case like the RDS database endpoint, or using `aws ssm get-parameter` in case of others like the Auth0 OIDC token.
 
 
 # Application build and deploy: CI/CD
@@ -104,3 +132,13 @@ The Kubernetes resources needed by Discourse can be found together with other co
 In order to allow the user running Codebuild talk and deploy into the Kubernetes cluster, there are 2 pieces of authorization we need to modify. 
 
 The first one is allowing the user to get the details of the cluster, and this is done using IAM roles. The second one is allowing the user to modify certain Kubernetes resources in specific namespaces. This is accomplished creating Users and Roles inside Kubernetes and mapping the ARN of the Codebuild job to a user inside the cluster. This is done modifying the `aws-auth` configmap in the kube-system namespace.
+
+# Metrics, Logs and Alerts
+This section describes which metrics are we gathering for Dicourse and where can you see them, where are the Discourse logs, what conditions are we using for alerting and where the alerts are shown.
+
+## Metrics
+This project is gathering 3 different kind of metrics: External loadbalancer metrics (these metrics reflect users experience: 500s, latency and amount of traffic), Internal Kubernetes metrics (like number of replicas running or scaling events) and Docker/CAdvisor metrics (these metrics show resources used by the application like CPU and memory).
+
+## Logs
+
+## Alerts
