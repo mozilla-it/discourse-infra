@@ -2,13 +2,13 @@ resource "aws_cloudfront_distribution" "discourse" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  aliases             = ["cdn.${var.discourse-url}"]
+  aliases             = ["cdn.${var.discourse-cdn-zone}"]
   comment             = "Discourse ${terraform.workspace} CDN"
   price_class         = "${var.cf-price-class}"
   depends_on          = ["aws_acm_certificate.cdn", "aws_acm_certificate_validation.cdn"]
 
   origin {
-    domain_name = "${aws_route53_record.discourse.fqdn}"
+    domain_name = "${var.discourse-cdn-zone}"
     origin_id   = "discourse-pull-origin"
     origin_path = ""
 
@@ -51,6 +51,26 @@ resource "aws_cloudfront_distribution" "discourse" {
     }
   }
 
+  custom_error_response {
+    error_caching_min_ttl = 0
+    error_code            = 404
+  }
+
+  custom_error_response {
+    error_caching_min_ttl = 0
+    error_code            = 502
+  }
+
+  custom_error_response {
+    error_caching_min_ttl = 0
+    error_code            = 503
+  }
+
+  custom_error_response {
+    error_caching_min_ttl = 0
+    error_code            = 504
+  }
+
   tags = "${merge(var.common-tags, var.workspace-tags)}"
 
   viewer_certificate {
@@ -61,7 +81,7 @@ resource "aws_cloudfront_distribution" "discourse" {
 }
 
 resource "aws_acm_certificate" "cdn" {
-  domain_name       = "cdn.${var.discourse-url}"
+  domain_name       = "cdn.${var.discourse-cdn-zone}"
   validation_method = "DNS"
   tags              = "${merge(var.common-tags, var.workspace-tags)}"
   provider          = "aws.us-east-1"
@@ -74,7 +94,7 @@ resource "aws_acm_certificate" "cdn" {
 resource "aws_route53_record" "cdn_cert_validation" {
   name    = "${aws_acm_certificate.cdn.domain_validation_options.0.resource_record_name}"
   type    = "${aws_acm_certificate.cdn.domain_validation_options.0.resource_record_type}"
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.cdn.id}"
   records = ["${aws_acm_certificate.cdn.domain_validation_options.0.resource_record_value}"]
   ttl     = 60
 }
@@ -96,9 +116,15 @@ resource "aws_s3_bucket" "cdn_logs" {
 }
 
 resource "aws_route53_record" "cdn_alias" {
-  name    = "cdn.${var.discourse-url}"
+  name    = "cdn.${var.discourse-cdn-zone}"
   type    = "CNAME"
-  zone_id = "${aws_route53_zone.discourse.id}"
+  zone_id = "${aws_route53_zone.cdn.id}"
   records = ["${aws_cloudfront_distribution.discourse.domain_name}"]
   ttl     = 60
+}
+
+resource "aws_route53_zone" "cdn" {
+  name          = "${var.discourse-cdn-zone}."
+  force_destroy = "false"
+  tags          = "${merge(var.common-tags, var.workspace-tags)}"
 }

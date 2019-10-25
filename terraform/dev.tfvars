@@ -3,6 +3,7 @@
 #############
 "discourse-url" = "discourse-dev.itsre-apps.mozit.cloud"
 "discourse-elb" = "ab30fe62db90e11e99aba06db27de6a9"
+"discourse-cdn-zone" = "discourse-dev.itsre-apps.mozit.cloud"
 
 #########
 # Redis #

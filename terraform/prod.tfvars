@@ -1,14 +1,15 @@
 #############
 # Discourse #
 #############
-"discourse-url" = "discourse-prod.itsre-apps.mozit.cloud"
+"discourse-url" = "discourse.mozilla.org"
 "discourse-elb" = "a4973975cda0c11e9807a021c7053ca0"
+"discourse-cdn-zone" = "discourse-prod.itsre-apps.mozit.cloud"
 
 
 #########
 # Redis #
 #########
-"redis-instance" = "cache.t2.medium"
+"redis-instance" = "cache.t2.small"
 "redis-num-nodes" = 1
 "redis-version" = "5.0.4"
 
@@ -16,7 +17,7 @@
 ##########
 #  PSQL  #
 ##########
-"psql-instance" = "db.m5.large"
+"psql-instance" = "db.t3.small"
 "psql-version" = "10"
 "psql-storage-allocated" = 30
 "psql-storage-max"  = 100
@@ -32,5 +33,3 @@
 #     Email     #
 #################
 "ses-domain" = "discourse.mozilla.org"
-#"ses-domain" = "discourse-prod.itsre-apps.mozit.cloud"
-  
