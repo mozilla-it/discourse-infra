@@ -3,13 +3,13 @@ This repository contains the infrastructure code for running discourse.mozilla.o
 
 # Table of content
 
- - 0 [FAQ](#fac)
- - 1 [User Management](#user-management)
- - 2 [Infrastructure: Terraform](#terraform)
- - 3 [Dependencies](#dependencies)
- - 4 [Secrets](#secrets)
- - 5 [CI/CD](#ci-cd)
- - 6 [Metrics, Logs and Alerts](#metrics-logs-alerts)
+ - 1 [FAQ](#fac)
+ - 2 [User Management](#user-management)
+ - 3 [Infrastructure: Terraform](#terraform)
+ - 4 [Dependencies](#dependencies)
+ - 5 [Secrets](#secrets)
+ - 6 [CI/CD](#ci-cd)
+ - 7 [Metrics, Logs and Alerts](#metrics-logs-alerts)
 
 
 # FAQ
@@ -138,7 +138,14 @@ This section describes which metrics are we gathering for Dicourse and where can
 
 ## Metrics
 This project is gathering 3 different kind of metrics: External loadbalancer metrics (these metrics reflect users experience: 500s, latency and amount of traffic), Internal Kubernetes metrics (like number of replicas running or scaling events) and Docker/CAdvisor metrics (these metrics show resources used by the application like CPU and memory).
+There are several components needed for exposing and later consuming and sending this metrics. Most of them are done in the Kubernetes cluster level, for example with metrics-server.
+
+All these metrics are displayed in a single Grafana dashboard [here](https://biff-5adb6e55.influxcloud.net/d/-wHLuuFZz/discourse?orgId=1). There you can filter by environment and, with a glance, see how the application is performing and compare it with the historical data
 
 ## Logs
+The Discourse application logs its messages to files in the local container. Those logs are picked up by a sidecar container running a Syslog forwader which sends them to Papertrail where they are centrally collected. Use Papertrail to search for logs, evertyhing is send there. 
+
+Also the production.log file (which contains the most important information) is tailed -f by a sidecar container. This makes possible to follow the logs of a specific pod using the kubectl logs feature.
 
 ## Alerts
+There are 3 different sources from where an alert can be fired: New Relic Synthetics (firing alerts for site unavailability), Papertrail (firing alerts based on log information) and Kapacitor (firing alerts based on application behavior). All 3 applications will send the alerts to #discourse-alerts, and New Relic will send unavailability alerts to #it-sre-bot. There are other destinations, like emails to discoruse-admins@mozilla.comm or paging Alberto, but this is not publicily available.
