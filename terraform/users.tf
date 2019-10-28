@@ -4,8 +4,8 @@
 
 # Alberto
 resource "aws_iam_user" "adelbarrio" {
-  name = "adelbarrio"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "adelbarrio"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   # Not supported by EKS:
   #path = "/discourse/"
@@ -13,9 +13,9 @@ resource "aws_iam_user" "adelbarrio" {
 }
 
 resource "aws_iam_user_policy" "adelbarrio_mfa" {
-  name = "allow-${aws_iam_user.adelbarrio.name}-self-manage-mfa"
-  user = "${aws_iam_user.adelbarrio.name}"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "allow-${aws_iam_user.adelbarrio.name}-self-manage-mfa"
+  user  = "${aws_iam_user.adelbarrio.name}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   policy = <<EOF
 {
@@ -80,7 +80,7 @@ resource "aws_iam_user_login_profile" "adelbarrio" {
   user                    = "${aws_iam_user.adelbarrio.name}"
   pgp_key                 = "keybase:adelbarrio"
   password_reset_required = false
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   lifecycle {
     ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
@@ -89,8 +89,8 @@ resource "aws_iam_user_login_profile" "adelbarrio" {
 
 # Leo
 resource "aws_iam_user" "lmcardle" {
-  name = "lmcardle"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "lmcardle"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   # Not supported by EKS:
   #path = "/discourse/"
@@ -98,9 +98,9 @@ resource "aws_iam_user" "lmcardle" {
 }
 
 resource "aws_iam_user_policy" "lmcardle_mfa" {
-  name = "allow-${aws_iam_user.lmcardle.name}-self-manage-mfa"
-  user = "${aws_iam_user.lmcardle.name}"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "allow-${aws_iam_user.lmcardle.name}-self-manage-mfa"
+  user  = "${aws_iam_user.lmcardle.name}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   policy = <<EOF
 {
@@ -165,7 +165,7 @@ resource "aws_iam_user_login_profile" "lmcardle" {
   user                    = "${aws_iam_user.lmcardle.name}"
   pgp_key                 = "keybase:leomca"
   password_reset_required = false
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   lifecycle {
     ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
@@ -178,21 +178,21 @@ resource "aws_iam_user_login_profile" "lmcardle" {
 
 resource "aws_iam_group_membership" "discourse" {
   name  = "discourse-developers"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
   users = ["${aws_iam_user.adelbarrio.name}", "${aws_iam_user.lmcardle.name}"]
   group = "${aws_iam_group.developers.name}"
 }
 
 resource "aws_iam_group" "developers" {
-  name = "developers"
-  path = "/discourse/"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "developers"
+  path  = "/discourse/"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 }
 
 resource "aws_iam_group_policy" "discourse-devs" {
   name  = "discourse-developer-policy"
   group = "${aws_iam_group.developers.id}"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   policy = <<EOF
 {
@@ -271,7 +271,7 @@ EOF
 resource "aws_iam_group_policy" "self-managed-mfa" {
   name  = "self-managed-mfa"
   group = "${aws_iam_group.developers.id}"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   policy = <<EOF
 {
@@ -312,7 +312,7 @@ EOF
 resource "aws_iam_group_policy" "lambda" {
   name  = "discourse-developers-lambda-access"
   group = "${aws_iam_group.developers.id}"
-	count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
 
   policy = <<EOF
 {

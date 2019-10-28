@@ -11,15 +11,16 @@ resource "aws_route53_record" "discourse" {
 }
 
 resource "aws_route53_zone" "discourse" {
-  name = "discourse-${terraform.workspace}.itsre-apps.mozit.cloud."
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  name          = "${var.discourse-url}."
+  force_destroy = "false"
+  tags          = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
 resource "aws_route53_record" "zone_ns" {
-  zone_id = "${data.aws_route53_zone.common.zone_id}"
-  name    = "discourse-${terraform.workspace}.itsre-apps.mozit.cloud"
+  zone_id = "${aws_route53_zone.discourse.zone_id}"
+  name    = "${var.discourse-url}"
   type    = "NS"
-  ttl     = "30"
+  ttl     = "172800"
 
   records = [
     "${aws_route53_zone.discourse.name_servers.0}",
@@ -52,10 +53,16 @@ resource "aws_route53_record" "cert_validation" {
   type    = "${aws_acm_certificate.cert.domain_validation_options.0.resource_record_type}"
   zone_id = "${aws_route53_zone.discourse.id}"
   records = ["${aws_acm_certificate.cert.domain_validation_options.0.resource_record_value}"]
-  ttl     = 60
+  ttl     = 300
 }
 
 resource "aws_acm_certificate_validation" "cert" {
   certificate_arn         = "${aws_acm_certificate.cert.arn}"
   validation_record_fqdns = ["${aws_route53_record.cert_validation.fqdn}"]
+
+  # This is a hack to avoid trying to create this resources, because it was created manually
+  # and can't be imported.
+  # Once the CDN in prod is using cdn.discourse.mozilla.org we could recreate the cert
+  # so get rid of this.
+  count = "${terraform.workspace == "prod" ? "0" : "1"}"
 }
