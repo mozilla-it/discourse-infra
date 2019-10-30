@@ -82,7 +82,7 @@ resource "aws_route53_record" "txt_dmarc" {
   name    = "_dmarc.${aws_ses_domain_identity.main.domain}"
   type    = "TXT"
   ttl     = "600"
-  records = ["v=DMARC1; p=none; rua=mailto:postmaster@${aws_ses_domain_identity.main.domain};"]
+  records = ["v=DMARC1; p=reject;rua=mailto:postmaster@${aws_ses_domain_identity.main.domain};"]
 }
 
 # SES Receipt Rule
