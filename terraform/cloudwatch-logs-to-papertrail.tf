@@ -5,6 +5,7 @@ resource "aws_s3_bucket" "logs_to_papertrail" {
 }
 
 resource "aws_lambda_function" "logs_to_papertrail" {
+	# The sourced code of this function is in https://github.com/Signiant/PaperWatch
   function_name = "cloudwatch-to-papertrail"
   handler       = "src/lambda.handler"
   s3_bucket     = "${aws_s3_bucket.logs_to_papertrail.id}"
