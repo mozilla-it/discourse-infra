@@ -56,6 +56,13 @@ resource "aws_cloudwatch_log_group" "lambda_tldr" {
   tags              = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
+resource "aws_cloudwatch_log_subscription_filter" "lambda_tldr_papertrail" {
+  name            = "discourse-${terraform.workspace}-tldr-logs-to-papertrail"
+  log_group_name  = "${aws_cloudwatch_log_group.lambda_tldr.name}"
+  destination_arn = "${aws_lambda_function.logs_to_papertrail.arn}"
+  filter_pattern  = ""
+}
+
 resource "aws_iam_policy" "lambda_tldr" {
   name = "discourse-${terraform.workspace}-lambda-tldr"
   path = "/discourse/"

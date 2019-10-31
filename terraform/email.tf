@@ -266,6 +266,13 @@ resource "aws_cloudwatch_log_group" "lambda_incoming_email" {
   tags              = "${merge(var.common-tags, var.workspace-tags)}"
 }
 
+resource "aws_cloudwatch_log_subscription_filter" "lambda_incoming_email_to_papertrail" {
+  name            = "discourse-${terraform.workspace}-processed-email-logs-to-papertrail"
+  log_group_name  = "${aws_cloudwatch_log_group.lambda_incoming_email.name}"
+  destination_arn = "${aws_lambda_function.logs_to_papertrail.arn}"
+  filter_pattern  = ""
+}
+
 resource "aws_iam_policy" "lambda_incoming_email" {
   name = "discourse-${terraform.workspace}-lambda-email"
   path = "/discourse/"
