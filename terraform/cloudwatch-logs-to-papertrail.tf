@@ -21,8 +21,6 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_lambda_logs" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.logs_to_papertrail.function_name}"
-
-  #principal     = "events.amazonaws.com"
   principal = "logs.us-west-2.amazonaws.com"
 }
 
