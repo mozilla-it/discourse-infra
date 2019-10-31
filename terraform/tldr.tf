@@ -17,7 +17,7 @@ resource "aws_lambda_function" "tldr" {
       DISCOURSE_TLDR_API_KEY      = "${aws_ssm_parameter.tldr_api_key.value}"
       DISCOURSE_TLDR_API_USERNAME = "tldr"
       DISCOURSE_TLDR_BUCKET       = "${aws_s3_bucket.tldr_email.id}"
-      DISCOURSE_TLDR_CATEGORY     = "${terraform.workspace == "prod" ? 253 : 216}"
+      DISCOURSE_TLDR_CATEGORY     = "253"
       DISCOURSE_TLDR_URL          = "https://${aws_route53_record.discourse.fqdn}"
     }
   }
