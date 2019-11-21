@@ -228,6 +228,10 @@ POLICY
 resource "aws_ecr_repository" "discourse" {
   name = "discourse-${terraform.workspace}"
   tags = "${merge(var.common-tags, var.workspace-tags)}"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 }
 
 resource "aws_ecr_repository_policy" "registrypolicy" {
