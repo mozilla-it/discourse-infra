@@ -2,6 +2,91 @@
 #      Users       #
 ####################
 
+# bowlofstew
+resource "aws_iam_user" "bowlofstew" {
+  name  = "bowlofstew"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+
+  # Not supported by EKS:
+  #path = "/discourse/"
+  tags = "${var.common-tags}"
+}
+
+resource "aws_iam_user_policy" "bowlofstew_mfa" {
+  name  = "allow-${aws_iam_user.bowlofstew.name}-self-manage-mfa"
+  user  = "${aws_iam_user.bowlofstew.name}"
+  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowIndividualUserToListOnlyTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": "iam:ListMFADevices",
+      "Resource": [
+        "arn:aws:iam::*:mfa/*",
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToManageTheirOwnMFA",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateVirtualMFADevice",
+        "iam:DeleteVirtualMFADevice",
+        "iam:EnableMFADevice",
+        "iam:ResyncMFADevice"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+      ]
+    },
+    {
+      "Sid": "AllowIndividualUserToDeactivateOnlyTheirOwnMFAOnlyWhenUsingMFA",
+      "Effect": "Allow",
+      "Action": "iam:DeactivateMFADevice",
+      "Resource": [
+        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew.name}",
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+      ],
+      "Condition": {
+         "Bool": {
+           "aws:MultiFactorAuthPresent": "true"
+          }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+				"iam:ChangePassword",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:GetAccessKeyLastUsed",
+        "iam:GetUser",
+        "iam:ListAccessKeys",
+        "iam:UpdateAccessKey"
+			],
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.bowlofstew.id}"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_user_login_profile" "bowlofstew" {
+  user                    = "${aws_iam_user.bowlofstew.name}"
+  pgp_key                 = "keybase:stewart"
+  password_reset_required = false
+  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
+
+  lifecycle {
+    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+  }
+}
+
 # Alberto
 resource "aws_iam_user" "adelbarrio" {
   name  = "adelbarrio"
