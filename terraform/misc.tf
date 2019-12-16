@@ -6,7 +6,7 @@ resource "random_id" "bucket" {
 resource "aws_s3_bucket" "uploads" {
   bucket = "discourse-${terraform.workspace}-uploads-${random_id.bucket.dec}"
   acl    = "private"
-  tags   = "${merge(var.common-tags, var.workspace-tags)}"
+  tags   = merge(var.common-tags, var.workspace-tags)
 
   lifecycle_rule {
     id      = "purge_tombstone"
@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "uploads" {
 }
 
 resource "aws_s3_bucket_policy" "uploads_bucket" {
-  bucket = "${aws_s3_bucket.uploads.id}"
+  bucket = aws_s3_bucket.uploads.id
 
   policy = <<POLICY
 {
@@ -37,4 +37,6 @@ resource "aws_s3_bucket_policy" "uploads_bucket" {
     ]
 }
 POLICY
+
 }
+

@@ -5,17 +5,17 @@
 # Alberto
 resource "aws_iam_user" "adelbarrio" {
   name  = "adelbarrio"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   # Not supported by EKS:
   #path = "/discourse/"
-  tags = "${var.common-tags}"
+  tags = var.common-tags
 }
 
 resource "aws_iam_user_policy" "adelbarrio_mfa" {
-  name  = "allow-${aws_iam_user.adelbarrio.name}-self-manage-mfa"
-  user  = "${aws_iam_user.adelbarrio.name}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "allow-${aws_iam_user.adelbarrio[0].name}-self-manage-mfa"
+  user  = aws_iam_user.adelbarrio[0].name
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -27,7 +27,7 @@ resource "aws_iam_user_policy" "adelbarrio_mfa" {
       "Action": "iam:ListMFADevices",
       "Resource": [
         "arn:aws:iam::*:mfa/*",
-        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio[0].name}"
       ]
     },
     {
@@ -40,8 +40,8 @@ resource "aws_iam_user_policy" "adelbarrio_mfa" {
         "iam:ResyncMFADevice"
       ],
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio[0].name}"
       ]
     },
     {
@@ -49,8 +49,8 @@ resource "aws_iam_user_policy" "adelbarrio_mfa" {
       "Effect": "Allow",
       "Action": "iam:DeactivateMFADevice",
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.adelbarrio[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.adelbarrio[0].name}"
       ],
       "Condition": {
          "Bool": {
@@ -69,38 +69,43 @@ resource "aws_iam_user_policy" "adelbarrio_mfa" {
         "iam:ListAccessKeys",
         "iam:UpdateAccessKey"
 			],
-      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.adelbarrio.id}"
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.adelbarrio[0].id}"
     }
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_user_login_profile" "adelbarrio" {
-  user                    = "${aws_iam_user.adelbarrio.name}"
+  user                    = aws_iam_user.adelbarrio[0].name
   pgp_key                 = "keybase:adelbarrio"
   password_reset_required = false
-  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count                   = terraform.workspace == "prod" ? "1" : "0"
 
   lifecycle {
-    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+    ignore_changes = [
+      password_length,
+      password_reset_required,
+      pgp_key,
+    ]
   }
 }
 
 # Leo
 resource "aws_iam_user" "lmcardle" {
   name  = "lmcardle"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   # Not supported by EKS:
   #path = "/discourse/"
-  tags = "${var.common-tags}"
+  tags = var.common-tags
 }
 
 resource "aws_iam_user_policy" "lmcardle_mfa" {
-  name  = "allow-${aws_iam_user.lmcardle.name}-self-manage-mfa"
-  user  = "${aws_iam_user.lmcardle.name}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "allow-${aws_iam_user.lmcardle[0].name}-self-manage-mfa"
+  user  = aws_iam_user.lmcardle[0].name
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -112,7 +117,7 @@ resource "aws_iam_user_policy" "lmcardle_mfa" {
       "Action": "iam:ListMFADevices",
       "Resource": [
         "arn:aws:iam::*:mfa/*",
-        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle[0].name}"
       ]
     },
     {
@@ -125,8 +130,8 @@ resource "aws_iam_user_policy" "lmcardle_mfa" {
         "iam:ResyncMFADevice"
       ],
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle[0].name}"
       ]
     },
     {
@@ -134,8 +139,8 @@ resource "aws_iam_user_policy" "lmcardle_mfa" {
       "Effect": "Allow",
       "Action": "iam:DeactivateMFADevice",
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.lmcardle.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.lmcardle[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.lmcardle[0].name}"
       ],
       "Condition": {
          "Bool": {
@@ -154,21 +159,26 @@ resource "aws_iam_user_policy" "lmcardle_mfa" {
         "iam:ListAccessKeys",
         "iam:UpdateAccessKey"
 			],
-      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.lmcardle.id}"
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.lmcardle[0].id}"
     }
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_user_login_profile" "lmcardle" {
-  user                    = "${aws_iam_user.lmcardle.name}"
+  user                    = aws_iam_user.lmcardle[0].name
   pgp_key                 = "keybase:leomca"
   password_reset_required = false
-  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count                   = terraform.workspace == "prod" ? "1" : "0"
 
   lifecycle {
-    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+    ignore_changes = [
+      password_length,
+      password_reset_required,
+      pgp_key,
+    ]
   }
 }
 
@@ -178,21 +188,21 @@ resource "aws_iam_user_login_profile" "lmcardle" {
 
 resource "aws_iam_group_membership" "discourse" {
   name  = "discourse-developers"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
-  users = ["${aws_iam_user.adelbarrio.name}", "${aws_iam_user.lmcardle.name}"]
-  group = "${aws_iam_group.developers.name}"
+  count = terraform.workspace == "prod" ? "1" : "0"
+  users = [aws_iam_user.adelbarrio[0].name, aws_iam_user.lmcardle[0].name]
+  group = aws_iam_group.developers[0].name
 }
 
 resource "aws_iam_group" "developers" {
   name  = "developers"
   path  = "/discourse/"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = terraform.workspace == "prod" ? "1" : "0"
 }
 
 resource "aws_iam_group_policy" "discourse-devs" {
   name  = "discourse-developer-policy"
-  group = "${aws_iam_group.developers.id}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  group = aws_iam_group.developers[0].id
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -266,12 +276,13 @@ resource "aws_iam_group_policy" "discourse-devs" {
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_group_policy" "self-managed-mfa" {
   name  = "self-managed-mfa"
-  group = "${aws_iam_group.developers.id}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  group = aws_iam_group.developers[0].id
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -307,12 +318,13 @@ resource "aws_iam_group_policy" "self-managed-mfa" {
     ]
 }
 EOF
+
 }
 
 resource "aws_iam_group_policy" "lambda" {
   name  = "discourse-developers-lambda-access"
-  group = "${aws_iam_group.developers.id}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  group = aws_iam_group.developers[0].id
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -375,4 +387,6 @@ resource "aws_iam_group_policy" "lambda" {
     ]
 }
 EOF
+
 }
+

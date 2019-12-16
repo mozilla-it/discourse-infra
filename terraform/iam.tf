@@ -1,7 +1,7 @@
 resource "aws_iam_role" "discourse_role" {
   name               = "discourse-${terraform.workspace}"
   path               = "/discourse/"
-  assume_role_policy = "${data.aws_iam_policy_document.allow_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.allow_assume_role.json
 }
 
 data "aws_iam_policy_document" "allow_assume_role" {
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "allow_assume_role" {
 
 resource "aws_iam_role_policy" "discourse" {
   name = "discourse-${terraform.workspace}"
-  role = "${aws_iam_role.discourse_role.id}"
+  role = aws_iam_role.discourse_role.id
 
   policy = <<EOF
 {
@@ -47,22 +47,23 @@ resource "aws_iam_role_policy" "discourse" {
   ]
 }
 EOF
+
 }
 
 output "iam_role_arn" {
-  value       = "${aws_iam_role.discourse_role.arn}"
+  value       = aws_iam_role.discourse_role.arn
   description = "Discourse role ARN"
 }
 
 resource "aws_iam_role" "telegraf" {
   name               = "telegraf-${terraform.workspace}"
   path               = "/discourse/"
-  assume_role_policy = "${data.aws_iam_policy_document.allow_assume_role.json}"
+  assume_role_policy = data.aws_iam_policy_document.allow_assume_role.json
 }
 
 resource "aws_iam_role_policy" "telegraf" {
   name = "telegraf-discourse-${terraform.workspace}"
-  role = "${aws_iam_role.telegraf.id}"
+  role = aws_iam_role.telegraf.id
 
   policy = <<EOF
 {
@@ -80,4 +81,6 @@ resource "aws_iam_role_policy" "telegraf" {
   ]
 }
 EOF
+
 }
+
