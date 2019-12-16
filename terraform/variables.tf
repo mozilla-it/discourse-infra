@@ -76,7 +76,7 @@ variable "git-branch" {
 # See https://mana.mozilla.org/wiki/pages/viewpage.action?spaceKey=SRE&title=Tagging
 
 variable "common-tags" {
-  type = "map"
+  type = map(string)
 
   default = {
     "cost-center"   = "1410"
@@ -88,7 +88,7 @@ variable "common-tags" {
 }
 
 variable "workspace-tags" {
-  type    = "map"
+  type    = map(string)
   default = {}
 }
 
@@ -113,3 +113,4 @@ variable "cf-alias" {
 variable "ses-domain" {
   default = "discourse.mozilla.org"
 }
+

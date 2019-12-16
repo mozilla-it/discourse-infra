@@ -1,8 +1,8 @@
 resource "aws_codebuild_project" "discourse" {
   name          = "discourse-${terraform.workspace}"
   description   = "CI/CD pipeline for ${terraform.workspace}"
-  build_timeout = "30"                                        #In minutes
-  service_role  = "${aws_iam_role.codebuild.arn}"
+  build_timeout = "30" #In minutes
+  service_role  = aws_iam_role.codebuild.arn
 
   artifacts {
     type = "NO_ARTIFACTS"
@@ -15,118 +15,117 @@ resource "aws_codebuild_project" "discourse" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "${var.base-build-image}"
+    image        = var.base-build-image
     type         = "LINUX_CONTAINER"
 
     # You need "true" here to be able to run Docker daemon inside the building container
     privileged_mode = "true"
 
     environment_variable {
-      "name"  = "DB_HOST"
-      "value" = "${aws_db_instance.discourse.address}"
+      name  = "DB_HOST"
+      value = aws_db_instance.discourse.address
     }
 
     environment_variable {
-      "name"  = "DB_PWD"
-      "value" = "${aws_ssm_parameter.db-secret.value}"
+      name  = "DB_PWD"
+      value = aws_ssm_parameter.db-secret.value
     }
 
     environment_variable {
-      "name"  = "REDIS_HOST"
-      "value" = "${aws_elasticache_cluster.discourse.cache_nodes.0.address}"
+      name  = "REDIS_HOST"
+      value = aws_elasticache_cluster.discourse.cache_nodes[0].address
     }
 
     environment_variable {
-      "name"  = "ECR"
-      "value" = "${aws_ecr_repository.discourse.repository_url}"
+      name  = "ECR"
+      value = aws_ecr_repository.discourse.repository_url
     }
 
     environment_variable {
-      "name"  = "CLUSTER"
-      "value" = "k8s-apps-prod-us-west-2"
+      name  = "CLUSTER"
+      value = "k8s-apps-prod-us-west-2"
     }
 
     environment_variable {
-      "name"  = "D_HOSTNAME"
-      "value" = "${aws_route53_record.discourse.fqdn}"
+      name  = "D_HOSTNAME"
+      value = aws_route53_record.discourse.fqdn
     }
 
     environment_variable {
-      "name"  = "SMTP_USER"
-      "value" = "${aws_iam_access_key.smtp.id}"
+      name  = "SMTP_USER"
+      value = aws_iam_access_key.smtp.id
     }
 
     environment_variable {
-      "name"  = "SMTP_PW"
-      "value" = "${aws_iam_access_key.smtp.ses_smtp_password}"
+      name  = "SMTP_PW"
+      value = aws_iam_access_key.smtp.ses_smtp_password
     }
 
     environment_variable {
-      "name"  = "CDN_URL"
-      "value" = "https://cdn.${var.discourse-cdn-zone}"
+      name  = "CDN_URL"
+      value = "https://cdn.${var.discourse-cdn-zone}"
     }
 
     environment_variable {
-      "name"  = "AUTH0_CALLBACK_URL"
-      "value" = "https://${var.discourse-url}/auth/auth0/callback"
+      name  = "AUTH0_CALLBACK_URL"
+      value = "https://${var.discourse-url}/auth/auth0/callback"
     }
 
     environment_variable {
-      "name"  = "AUTH0_CLIENT"
-      "value" = "${aws_ssm_parameter.auth0_client.value}"
+      name  = "AUTH0_CLIENT"
+      value = aws_ssm_parameter.auth0_client.value
     }
 
     environment_variable {
-      "name"  = "AUTH0_SECRET"
-      "value" = "${aws_ssm_parameter.auth0_secret.value}"
+      name  = "AUTH0_SECRET"
+      value = aws_ssm_parameter.auth0_secret.value
     }
 
     environment_variable {
-      "name"  = "ENV"
-      "value" = "${terraform.workspace}"
+      name  = "ENV"
+      value = terraform.workspace
     }
 
     environment_variable {
-      "name"  = "S3_UPLOADS"
-      "value" = "${aws_s3_bucket.uploads.id}"
+      name  = "S3_UPLOADS"
+      value = aws_s3_bucket.uploads.id
     }
 
     environment_variable {
-      "name"  = "S3_REGION"
-      "value" = "${var.region}"
+      name  = "S3_REGION"
+      value = var.region
     }
 
     environment_variable {
-      "name"  = "CODE_REVISION"
-      "value" = "tests-passed"
+      name  = "CODE_REVISION"
+      value = "tests-passed"
     }
 
     environment_variable {
-      "name"  = "SES_DOMAIN"
-      "value" = "${var.ses-domain}"
+      name  = "SES_DOMAIN"
+      value = var.ses-domain
     }
 
     environment_variable {
-      "name"  = "AKISMET_API_KEY"
-      "value" = "${aws_ssm_parameter.akismet-key.value}"
+      name  = "AKISMET_API_KEY"
+      value = aws_ssm_parameter.akismet-key.value
     }
   }
 
   source {
     type      = "GITHUB"
-    location  = "${var.git-repo}"
+    location  = var.git-repo
     buildspec = "buildspec.yml"
   }
 
   vpc_config {
-    vpc_id = "${data.terraform_remote_state.deploy.vpc_id}"
+    vpc_id = data.terraform_remote_state.deploy.outputs.vpc_id
 
-    #security_group_ids = ["${aws_security_group.discourse-db.id}", "${aws_security_group.discourse-redis.id}", "${aws_security_group.codebuild.id}"]
-    security_group_ids = ["${data.terraform_remote_state.k8s.worker_security_group_id}"]
-    subnets            = ["${data.terraform_remote_state.deploy.private_subnets}"]
+    security_group_ids = flatten([data.terraform_remote_state.k8s.outputs.worker_security_group_id])
+    subnets            = flatten([data.terraform_remote_state.deploy.outputs.private_subnets])
   }
 
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = merge(var.common-tags, var.workspace-tags)
 }
 
 #---
@@ -135,7 +134,7 @@ resource "aws_codebuild_project" "discourse" {
 
 resource "aws_iam_role" "codebuild" {
   name = "discourse-${terraform.workspace}-codebuild"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = merge(var.common-tags, var.workspace-tags)
 
   assume_role_policy = <<EOF
 {
@@ -151,10 +150,11 @@ resource "aws_iam_role" "codebuild" {
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_role_policy" "codebuild" {
-  role = "${aws_iam_role.codebuild.name}"
+  role = aws_iam_role.codebuild.name
   name = "discourse-${terraform.workspace}-codebuild"
 
   policy = <<POLICY
@@ -202,9 +202,18 @@ resource "aws_iam_role_policy" "codebuild" {
       "Condition": {
           "StringEquals": {
               "ec2:Subnet": [
-                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(data.terraform_remote_state.deploy.private_subnets, 0)}",
-                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(data.terraform_remote_state.deploy.private_subnets, 1)}",
-                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(data.terraform_remote_state.deploy.private_subnets, 2)}"
+                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(
+  data.terraform_remote_state.deploy.outputs.private_subnets,
+  0,
+  )}",
+                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(
+  data.terraform_remote_state.deploy.outputs.private_subnets,
+  1,
+  )}",
+                  "arn:aws:ec2:${var.region}:${data.aws_caller_identity.current.account_id}:subnet/${element(
+  data.terraform_remote_state.deploy.outputs.private_subnets,
+  2,
+)}"
               ],
               "ec2:AuthorizedService": "codebuild.amazonaws.com"
           }
@@ -220,6 +229,7 @@ resource "aws_iam_role_policy" "codebuild" {
   ]
 }
 POLICY
+
 }
 
 #---
@@ -227,7 +237,7 @@ POLICY
 #---
 resource "aws_ecr_repository" "discourse" {
   name = "discourse-${terraform.workspace}"
-  tags = "${merge(var.common-tags, var.workspace-tags)}"
+  tags = merge(var.common-tags, var.workspace-tags)
 
   image_scanning_configuration {
     scan_on_push = true
@@ -235,7 +245,7 @@ resource "aws_ecr_repository" "discourse" {
 }
 
 resource "aws_ecr_repository_policy" "registrypolicy" {
-  repository = "${aws_ecr_repository.discourse.name}"
+  repository = aws_ecr_repository.discourse.name
 
   policy = <<EOF
 {
@@ -266,11 +276,12 @@ resource "aws_ecr_repository_policy" "registrypolicy" {
     ]
 }
 EOF
+
 }
 
 resource "aws_security_group" "codebuild" {
   name   = "discourse-${terraform.workspace}-codebuild"
-  vpc_id = "${data.terraform_remote_state.deploy.vpc_id}"
+  vpc_id = data.terraform_remote_state.deploy.outputs.vpc_id
 
   ingress {
     from_port   = 0
@@ -286,7 +297,7 @@ resource "aws_security_group" "codebuild" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = "${var.common-tags}"
+  tags = var.common-tags
 }
 
 # TODO create an encrypted secret with a new KMS key
@@ -294,10 +305,10 @@ resource "aws_ssm_parameter" "db-secret" {
   name  = "/discourse/${terraform.workspace}/db/secret"
   type  = "String"
   value = "non-real-password"
-  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+  tags  = merge(var.common-tags, var.workspace-tags)
 
   lifecycle {
-    ignore_changes = ["value"]
+    ignore_changes = [value]
   }
 }
 
@@ -305,10 +316,10 @@ resource "aws_ssm_parameter" "auth0_client" {
   name  = "/discourse/${terraform.workspace}/auth0-client-id"
   type  = "String"
   value = "non-real-id"
-  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+  tags  = merge(var.common-tags, var.workspace-tags)
 
   lifecycle {
-    ignore_changes = ["value"]
+    ignore_changes = [value]
   }
 }
 
@@ -316,10 +327,10 @@ resource "aws_ssm_parameter" "auth0_secret" {
   name  = "/discourse/${terraform.workspace}/auth0-client-secret"
   type  = "String"
   value = "non-real-secret"
-  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+  tags  = merge(var.common-tags, var.workspace-tags)
 
   lifecycle {
-    ignore_changes = ["value"]
+    ignore_changes = [value]
   }
 }
 
@@ -327,9 +338,10 @@ resource "aws_ssm_parameter" "akismet-key" {
   name  = "/discourse/${terraform.workspace}/akismet-api-key"
   type  = "String"
   value = "non-real-key"
-  tags  = "${merge(var.common-tags, var.workspace-tags)}"
+  tags  = merge(var.common-tags, var.workspace-tags)
 
   lifecycle {
-    ignore_changes = ["value"]
+    ignore_changes = [value]
   }
 }
+
