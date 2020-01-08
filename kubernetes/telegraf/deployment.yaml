@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        iam.amazonaws.com/role: arn:aws:iam::783633885093:role/discourse/telegraf-staging
+        iam.amazonaws.com/role: arn:aws:iam::783633885093:role/discourse/telegraf-stage
       labels:
         app: telegraf
     spec:

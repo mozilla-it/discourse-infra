@@ -313,7 +313,7 @@ resource "aws_iam_group_policy" "discourse-devs" {
       ],
       "Effect": "Allow",
       "Resource": [
-				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-staging",
+				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-stage",
 				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-dev",
 				"arn:aws:codebuild:us-west-2:783633885093:project/discourse-prod"
 			]
