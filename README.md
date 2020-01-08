@@ -71,7 +71,7 @@ It should be all set. Test the access running `kubectl get pods -n=discourse-dev
 All the AWS resources needed to build, deploy and run Discourse are entirely managed with Terraform. In order to make changes to the infrastructure you must be logged into AWS.
 
 ### Using terrafom workspaces
-This project uses teraform workspaces for managing the different application environments: development, staging and production. You can list the currently available workspaces with `terraform workspace list` and choose one with `terraform workspace select dev`.
+This project uses teraform workspaces for managing the different application environments: development, stage and production. You can list the currently available workspaces with `terraform workspace list` and choose one with `terraform workspace select dev`.
 Workspaces have a specific variables file named after them, which you have to specify it in order to modify the specific environment. For example:
 
 `terraform plan -var-file="dev.tfvars"`

@@ -38,12 +38,12 @@ data:
       namespace = "AWS/Lambda"
       [inputs.cloudwatch.tags]
         application = "discourse"
-        environment = "staging"
+        environment = "stage"
       [[inputs.cloudwatch.metrics]]
         names = ["Invocations", "Errors", "Duration"]
         [[inputs.cloudwatch.metrics.dimensions]]
           name = "FunctionName"
-          value = "discourse-staging-process-email"
+          value = "discourse-stage-process-email"
 
     [[inputs.cloudwatch]]
       region = "us-west-2"
@@ -52,12 +52,40 @@ data:
       namespace = "AWS/Lambda"
       [inputs.cloudwatch.tags]
         application = "discourse"
-        environment = "staging"
+        environment = "prod"
       [[inputs.cloudwatch.metrics]]
         names = ["Invocations", "Errors", "Duration"]
         [[inputs.cloudwatch.metrics.dimensions]]
           name = "FunctionName"
-          value = "discourse-staging-tldr"
+          value = "discourse-prod-process-email"
+
+    [[inputs.cloudwatch]]
+      region = "us-west-2"
+      period = "5m"
+      interval = "5m"
+      namespace = "AWS/Lambda"
+      [inputs.cloudwatch.tags]
+        application = "discourse"
+        environment = "stage"
+      [[inputs.cloudwatch.metrics]]
+        names = ["Invocations", "Errors", "Duration"]
+        [[inputs.cloudwatch.metrics.dimensions]]
+          name = "FunctionName"
+          value = "discourse-stage-tldr"
+
+    [[inputs.cloudwatch]]
+      region = "us-west-2"
+      period = "5m"
+      interval = "5m"
+      namespace = "AWS/Lambda"
+      [inputs.cloudwatch.tags]
+        application = "discourse"
+        environment = "prod"
+      [[inputs.cloudwatch.metrics]]
+        names = ["Invocations", "Errors", "Duration"]
+        [[inputs.cloudwatch.metrics.dimensions]]
+          name = "FunctionName"
+          value = "discourse-prod-tldr"
 
     # RDS
     [[inputs.cloudwatch]]
@@ -69,7 +97,7 @@ data:
         application = "discourse"
         environment = "dev"
       [[inputs.cloudwatch.metrics]]
-        names = ["CPUUtilization", "DatabaseConnections", "DiskQueueDepth", "FreeableMemory", "ReadIOPS", "ReadLatency", "WriteIOPS", "WriteLatency"]
+        names = ["CPUUtilization", "DatabaseConnections", "DiskQueueDepth", "FreeableMemory", "ReadIOPS", "ReadLatency", "WriteIOPS", "WriteLatency", "FreeStorageSpace"]
         [[inputs.cloudwatch.metrics.dimensions]]
           name = "DBInstanceIdentifier"
           value = "discourse-dev"
@@ -81,12 +109,26 @@ data:
       namespace = "AWS/RDS"
       [inputs.cloudwatch.tags]
         application = "discourse"
-        environment = "staging"
+        environment = "stage"
       [[inputs.cloudwatch.metrics]]
-        names = ["CPUUtilization", "DatabaseConnections", "DiskQueueDepth", "FreeStorageSpace", "ReadIOPS", "ReadLatency", "WriteIOPS", "WriteLatency"]
+        names = ["CPUUtilization", "DatabaseConnections", "DiskQueueDepth", "FreeableMemory", "FreeStorageSpace", "ReadIOPS", "ReadLatency", "WriteIOPS", "WriteLatency"]
         [[inputs.cloudwatch.metrics.dimensions]]
           name = "DBInstanceIdentifier"
-          value = "discourse-staging"
+          value = "discourse-stage"
+
+    [[inputs.cloudwatch]]
+      region = "us-west-2"
+      period = "5m"
+      interval = "5m"
+      namespace = "AWS/RDS"
+      [inputs.cloudwatch.tags]
+        application = "discourse"
+        environment = "prod"
+      [[inputs.cloudwatch.metrics]]
+        names = ["CPUUtilization", "DatabaseConnections", "DiskQueueDepth", "FreeableMemory", "FreeStorageSpace", "ReadIOPS", "ReadLatency", "WriteIOPS", "WriteLatency"]
+        [[inputs.cloudwatch.metrics.dimensions]]
+          name = "DBInstanceIdentifier"
+          value = "discourse-prod"
 
     # SES - Global and not per SES domain
     [[inputs.cloudwatch]]
@@ -122,12 +164,26 @@ data:
       namespace = "AWS/ElastiCache"
       [inputs.cloudwatch.tags]
         application = "discourse"
-        environment = "staging"
+        environment = "stage"
       [[inputs.cloudwatch.metrics]]
         names = ["CPUUtilization", "FreeableMemory"]
         [[inputs.cloudwatch.metrics.dimensions]]
           name = "CacheClusterId"
-          value = "discourse-staging"
+          value = "discourse-stage"
+
+    [[inputs.cloudwatch]]
+      region = "us-west-2"
+      period = "15m"
+      interval = "15m"
+      namespace = "AWS/ElastiCache"
+      [inputs.cloudwatch.tags]
+        application = "discourse"
+        environment = "prod"
+      [[inputs.cloudwatch.metrics]]
+        names = ["CPUUtilization", "FreeableMemory"]
+        [[inputs.cloudwatch.metrics.dimensions]]
+          name = "CacheClusterId"
+          value = "discourse-prod"
 
     # S3
     [[inputs.cloudwatch]]
