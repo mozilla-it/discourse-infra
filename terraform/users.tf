@@ -5,17 +5,17 @@
 # bowlofstew
 resource "aws_iam_user" "bowlofstew" {
   name  = "bowlofstew"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   # Not supported by EKS:
   #path = "/discourse/"
-  tags = "${var.common-tags}"
+  tags = var.common-tags
 }
 
 resource "aws_iam_user_policy" "bowlofstew_mfa" {
-  name  = "allow-${aws_iam_user.bowlofstew.name}-self-manage-mfa"
-  user  = "${aws_iam_user.bowlofstew.name}"
-  count = "${terraform.workspace == "prod" ? "1" : "0"}"
+  name  = "allow-${aws_iam_user.bowlofstew[0].name}-self-manage-mfa"
+  user  = aws_iam_user.bowlofstew[0].name
+  count = terraform.workspace == "prod" ? "1" : "0"
 
   policy = <<EOF
 {
@@ -27,7 +27,7 @@ resource "aws_iam_user_policy" "bowlofstew_mfa" {
       "Action": "iam:ListMFADevices",
       "Resource": [
         "arn:aws:iam::*:mfa/*",
-        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew[0].name}"
       ]
     },
     {
@@ -40,8 +40,8 @@ resource "aws_iam_user_policy" "bowlofstew_mfa" {
         "iam:ResyncMFADevice"
       ],
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew[0].name}"
       ]
     },
     {
@@ -49,8 +49,8 @@ resource "aws_iam_user_policy" "bowlofstew_mfa" {
       "Effect": "Allow",
       "Action": "iam:DeactivateMFADevice",
       "Resource": [
-        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew.name}",
-        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew.name}"
+        "arn:aws:iam::*:mfa/${aws_iam_user.bowlofstew[0].name}",
+        "arn:aws:iam::*:user/${aws_iam_user.bowlofstew[0].name}"
       ],
       "Condition": {
          "Bool": {
@@ -69,7 +69,7 @@ resource "aws_iam_user_policy" "bowlofstew_mfa" {
         "iam:ListAccessKeys",
         "iam:UpdateAccessKey"
 			],
-      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.bowlofstew.id}"
+      "Resource": "arn:aws:iam::783633885093:user/${aws_iam_user.bowlofstew[0].id}"
     }
   ]
 }
@@ -77,13 +77,13 @@ EOF
 }
 
 resource "aws_iam_user_login_profile" "bowlofstew" {
-  user                    = "${aws_iam_user.bowlofstew.name}"
+  user                    = aws_iam_user.bowlofstew[0].name
   pgp_key                 = "keybase:stewart"
   password_reset_required = false
-  count                   = "${terraform.workspace == "prod" ? "1" : "0"}"
+  count                   = terraform.workspace == "prod" ? "1" : "0"
 
   lifecycle {
-    ignore_changes = ["password_length", "password_reset_required", "pgp_key"]
+    ignore_changes = [password_length, password_reset_required, pgp_key]
   }
 }
 
