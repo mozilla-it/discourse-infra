@@ -8,7 +8,7 @@ resource "aws_lambda_function" "tldr" {
   tags          = merge(var.common-tags, var.workspace-tags)
   memory_size   = "256"
   timeout       = "60" # value expressed in seconds
-  runtime       = "nodejs8.10"
+  runtime       = "nodejs12.x"
 
   depends_on = [
     aws_iam_role_policy_attachment.tldr,
