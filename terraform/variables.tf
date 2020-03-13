@@ -114,3 +114,8 @@ variable "ses-domain" {
   default = "discourse.mozilla.org"
 }
 
+# ECR
+variable "ecr_expire_days" {
+  default = "365"
+}
+
