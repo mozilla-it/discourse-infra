@@ -279,6 +279,30 @@ EOF
 
 }
 
+resource "aws_ecr_lifecycle_policy" "ecr_expire" {
+  repository = aws_ecr_repository.discourse.name
+
+  policy = <<EOF
+{
+  "rules": [
+    {
+      "rulePriority": 1,
+      "description": "Expire untagged image older than ${var.ecr_expire_days} days",
+      "selection": {
+        "tagStatus": "any",
+        "countType": "sinceImagePushed",
+        "countUnit": "days",
+        "countNumber": ${var.ecr_expire_days}
+      },
+      "action": {
+        "type": "expire"
+      }
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_security_group" "codebuild" {
   name   = "discourse-${terraform.workspace}-codebuild"
   vpc_id = data.terraform_remote_state.deploy.outputs.vpc_id
