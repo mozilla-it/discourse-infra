@@ -116,6 +116,6 @@ variable "ses-domain" {
 
 # ECR
 variable "ecr_expire_days" {
-  default = "365"
+  default = "180"
 }
 
