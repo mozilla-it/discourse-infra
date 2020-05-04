@@ -10,6 +10,7 @@ This repository contains the infrastructure code for running discourse.mozilla.o
  - 5 [Secrets](#secrets)
  - 6 [CI/CD](#ci-cd)
  - 7 [Metrics, Logs and Alerts](#metrics-logs-alerts)
+ - 8 [Upgrades](#upgrades)
 
 
 # FAQ
@@ -149,3 +150,9 @@ Also the production.log file (which contains the most important information) is 
 
 ## Alerts
 There are 3 different sources from where an alert can be fired: New Relic Synthetics (firing alerts for site unavailability), Papertrail (firing alerts based on log information) and Kapacitor (firing alerts based on application behavior). All 3 applications will send the alerts to #discourse-alerts, and New Relic will send unavailability alerts to #it-sre-bot. There are other destinations, like emails to discoruse-admins@mozilla.comm or paging Alberto, but this is not publicily available.
+
+
+# Upgrades
+In order to upgrade Discourse run the Codebuild job which builds and deploys the application. By default this process builds Discourse from the `test-passed` branch which contains the most up to date code which doesn't break existing test. 
+It's recommended to first upgrade dev, later stage and test the site manually creating posts and checking that it is behaving as expected.
+
