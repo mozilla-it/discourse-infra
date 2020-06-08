@@ -38,7 +38,7 @@ resource "aws_codebuild_project" "discourse" {
 
     environment_variable {
       name  = "ECR"
-      value = aws_ecr_repository.discourse.repository_url
+      value = aws_ecr_repository.discourse-global.repository_url
     }
 
     environment_variable {
@@ -235,72 +235,50 @@ POLICY
 #---
 # ECR
 #---
-resource "aws_ecr_repository" "discourse" {
-  name = "discourse-${terraform.workspace}"
-  tags = merge(var.common-tags, var.workspace-tags)
+resource "aws_ecr_repository" "discourse-global" {
+  name  = "discourse"
+  tags  = var.common-tags
 
   image_scanning_configuration {
     scan_on_push = true
   }
 }
 
-resource "aws_ecr_repository_policy" "registrypolicy" {
-  repository = aws_ecr_repository.discourse.name
-
-  policy = <<EOF
-{
-    "Version": "2008-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Principal": {
-              "AWS": "${aws_iam_role.codebuild.arn}"
-            },
-            "Action": [
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:PutImage",
-                "ecr:InitiateLayerUpload",
-                "ecr:UploadLayerPart",
-                "ecr:CompleteLayerUpload",
-                "ecr:DescribeRepositories",
-                "ecr:GetRepositoryPolicy",
-                "ecr:ListImages",
-                "ecr:DeleteRepository",
-                "ecr:BatchDeleteImage",
-                "ecr:SetRepositoryPolicy",
-                "ecr:DeleteRepositoryPolicy"
-            ]
-        }
+data "aws_iam_policy_document" "registrypolicy-global" {
+  statement {
+    actions = [
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:PutImage",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:DescribeRepositories",
+      "ecr:GetRepositoryPolicy",
+      "ecr:ListImages",
+      "ecr:DeleteRepository",
+      "ecr:BatchDeleteImage",
+      "ecr:SetRepositoryPolicy",
+      "ecr:DeleteRepositoryPolicy",
     ]
-}
-EOF
 
-}
-
-resource "aws_ecr_lifecycle_policy" "ecr_expire" {
-  repository = aws_ecr_repository.discourse.name
-
-  policy = <<EOF
-{
-  "rules": [
-    {
-      "rulePriority": 1,
-      "description": "Expire untagged image older than ${var.ecr_expire_days} days",
-      "selection": {
-        "tagStatus": "any",
-        "countType": "sinceImagePushed",
-        "countUnit": "days",
-        "countNumber": ${var.ecr_expire_days}
-      },
-      "action": {
-        "type": "expire"
-      }
+    principals {
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::783633885093:role/discourse-dev-codebuild",
+        "arn:aws:iam::783633885093:role/discourse-stage-codebuild",
+        "arn:aws:iam::783633885093:role/discourse-prod-codebuild"
+      ]
     }
-  ]
+  }
 }
-EOF
+
+resource "aws_ecr_repository_policy" "registrypolicy-global" {
+  repository = aws_ecr_repository.discourse-global.name
+  count      = terraform.workspace == "prod" ? "1" : "0"
+
+  policy = data.aws_iam_policy_document.registrypolicy-global.json
 }
 
 resource "aws_security_group" "codebuild" {
