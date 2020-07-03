@@ -42,3 +42,25 @@ subjects:
   kind: Group
   name: discourse-developers
   namespace: discourse-prod
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: discourse-developers
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get","list","create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: discourse-developers
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: discourse-developers
+subjects:
+- kind: Group
+  name: discourse-developers
+  apiGroup: rbac.authorization.k8s.io
