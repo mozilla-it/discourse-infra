@@ -22,18 +22,8 @@ resource "aws_codebuild_project" "discourse" {
     privileged_mode = "true"
 
     environment_variable {
-      name  = "DB_HOST"
-      value = aws_db_instance.discourse.address
-    }
-
-    environment_variable {
-      name  = "DB_PWD"
-      value = aws_ssm_parameter.db-secret.value
-    }
-
-    environment_variable {
-      name  = "REDIS_HOST"
-      value = aws_elasticache_cluster.discourse.cache_nodes[0].address
+      name  = "ENV"
+      value = terraform.workspace
     }
 
     environment_variable {
@@ -47,68 +37,34 @@ resource "aws_codebuild_project" "discourse" {
     }
 
     environment_variable {
-      name  = "D_HOSTNAME"
-      value = aws_route53_record.discourse.fqdn
-    }
-
-    environment_variable {
-      name  = "SMTP_USER"
-      value = aws_iam_access_key.smtp.id
-    }
-
-    environment_variable {
-      name  = "SMTP_PW"
-      value = aws_iam_access_key.smtp.ses_smtp_password
-    }
-
-    environment_variable {
-      name  = "CDN_URL"
-      value = "https://cdn.${var.discourse-cdn-zone}"
-    }
-
-    environment_variable {
-      name  = "AUTH0_CALLBACK_URL"
-      value = "https://${var.discourse-url}/auth/auth0/callback"
-    }
-
-    environment_variable {
-      name  = "AUTH0_CLIENT"
-      value = aws_ssm_parameter.auth0_client.value
-    }
-
-    environment_variable {
-      name  = "AUTH0_SECRET"
-      value = aws_ssm_parameter.auth0_secret.value
-    }
-
-    environment_variable {
-      name  = "ENV"
-      value = terraform.workspace
-    }
-
-    environment_variable {
-      name  = "S3_UPLOADS"
-      value = aws_s3_bucket.uploads.id
-    }
-
-    environment_variable {
-      name  = "S3_REGION"
-      value = var.region
-    }
-
-    environment_variable {
       name  = "CODE_REVISION"
       value = "tests-passed"
     }
 
+    ### Secrets from here:
     environment_variable {
-      name  = "SES_DOMAIN"
-      value = var.ses-domain
+      name  = "DISCOURSE_DB_HOST"
+      value = aws_db_instance.discourse.address
     }
 
     environment_variable {
-      name  = "AKISMET_API_KEY"
-      value = aws_ssm_parameter.akismet-key.value
+      name  = "DISCOURSE_DB_PASSWORD"
+      value = aws_ssm_parameter.db-secret.value
+    }
+
+    environment_variable {
+      name  = "DISCOURSE_DB_NAME"
+      value = "discourse"
+    }
+
+    environment_variable {
+      name  = "DISCOURSE_DB_USERNAME"
+      value = "discourse"
+    }
+
+    environment_variable {
+      name  = "DISCOURSE_DB_PORT"
+      value = "5432"
     }
   }
 
