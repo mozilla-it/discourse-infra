@@ -43,6 +43,12 @@ data "aws_iam_policy_document" "developers" {
   }
 
   statement {
+    sid     = "DiscourseCodebuildLogs"
+    actions = ["logs:GetLogEvents"]
+    resources = ["arn:aws:logs:us-west-2:783633885093:log-group:/aws/codebuild/discourse-*:*:*"]
+  }
+
+  statement {
     sid       = "DiscourseS3"
     actions   = ["s3:*"]
     resources = ["arn:aws:s3:::discourse-*"]
