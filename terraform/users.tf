@@ -37,6 +37,12 @@ data "aws_iam_policy_document" "developers" {
   }
 
   statement {
+    sid     = "DiscourseCodebuildList"
+    actions = ["codebuild:ListProjects"]
+    resources = ["*"]
+  }
+
+  statement {
     sid       = "DiscourseS3"
     actions   = ["s3:*"]
     resources = ["arn:aws:s3:::discourse-*"]
