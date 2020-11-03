@@ -48,6 +48,27 @@ data "aws_iam_policy_document" "developers" {
     resources = ["arn:aws:logs:us-west-2:783633885093:log-group:/aws/codebuild/discourse-*:*:*"]
   }
 
+  # Need for CodeBuild UI
+  statement {
+    sid     = "DiscourseParameters"
+    actions = ["ssm:*"]
+    resources = ["arn:aws:ssm:us-west-2:783633885093:paramter:/discourse/*"]
+  }
+
+  # Need for CodeBuild UI
+  statement {
+    sid     = "DiscourseParametersList"
+    actions = ["ssm:DescribeParameters"]
+    resources = ["arn:aws:ssm:us-west-2:783633885093:*"]
+  }
+
+  # Need for CodeBuild UI
+  statement {
+    sid       = "DiscourseS3List"
+    actions   = ["s3:ListAllMyBuckets"]
+    resources = ["*"]
+  }
+
   statement {
     sid       = "DiscourseS3"
     actions   = ["s3:*"]
