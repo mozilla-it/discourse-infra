@@ -1,4 +1,7 @@
 # discourse-infra
+
+Note: migrated to https://github.com/mozilla-it/itse-apps-stage|prod-infra-1 setup.
+
 This repository contains the infrastructure code for running discourse.mozilla.org
 
 # Table of content
