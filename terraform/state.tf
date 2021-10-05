@@ -12,9 +12,9 @@ data "terraform_remote_state" "k8s" {
   backend = "s3"
 
   config = {
-    bucket = "itsre-state-783633885093"
-    key    = "us-west-2/itsre-apps-1/terraform.tfstate"
-    region = "eu-west-1"
+    bucket = "itse-apps-stage-1-state"
+    key    = "terraform.tfstate"
+    region = "us-west-2"
   }
 }
 
